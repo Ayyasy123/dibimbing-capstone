@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  # Service untuk aplikasi Go
+  app:
+    build: .
+    container_name: capstone
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - mysql
+    # restart: always
+    env_file:
+      - .env
+
+  # Service untuk MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-capstone
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+    env_file:
+      - .env
+
+volumes:
+  mysql_data:
+    driver: local

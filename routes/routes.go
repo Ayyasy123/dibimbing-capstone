@@ -51,3 +51,42 @@ func SetupServiceRoutes(db *gorm.DB, router *gin.Engine) {
 	router.DELETE("/services/:id", serviceController.DeleteService)
 	router.GET("/services", serviceController.GetAllServices)
 }
+
+func SetupBookingRoutes(db *gorm.DB, router *gin.Engine) {
+	bookingRepo := repository.NewBookingRepository(db)
+	bookingService := service.NewBookingService(bookingRepo)
+	bookingController := controller.NewBookingController(bookingService)
+
+	// Booking routes
+	router.GET("/bookings", bookingController.GetAllBookings)
+	router.GET("/bookings/:id", bookingController.GetBookingByID)
+	router.POST("/bookings", bookingController.CreateBooking)
+	router.PUT("/bookings", bookingController.UpdateBooking)
+	router.DELETE("/bookings/:id", bookingController.DeleteBooking)
+}
+
+func SetupPaymentRoutes(db *gorm.DB, router *gin.Engine) {
+	paymentRepo := repository.NewPaymentRepository(db)
+	paymentService := service.NewPaymentService(paymentRepo)
+	paymentController := controller.NewPaymentController(paymentService)
+
+	// Payment routes
+	router.GET("/payments", paymentController.GetAllPayments)
+	router.GET("/payments/:id", paymentController.GetPaymentByID)
+	router.POST("/payments", paymentController.CreatePayment)
+	router.PUT("/payments", paymentController.UpdatePayment)
+	router.DELETE("/payments/:id", paymentController.DeletePayment)
+}
+
+func SetupReviewRoutes(db *gorm.DB, router *gin.Engine) {
+	reviewRepo := repository.NewReviewRepository(db)
+	reviewService := service.NewReviewService(reviewRepo)
+	reviewController := controller.NewReviewController(reviewService)
+
+	// Review routes
+	router.GET("/reviews", reviewController.GetAllReviews)
+	router.GET("/reviews/:id", reviewController.GetReviewByID)
+	router.POST("/reviews", reviewController.CreateReview)
+	router.PUT("/reviews", reviewController.UpdateReview)
+	router.DELETE("/reviews/:id", reviewController.DeleteReview)
+}

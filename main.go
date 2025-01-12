@@ -24,6 +24,10 @@ func main() {
 	})
 
 	routes.SetupUserRoutes(config.DB, r)
+	routes.SetupServiceRoutes(config.DB, r)
+	routes.SetupBookingRoutes(config.DB, r)
+	routes.SetupPaymentRoutes(config.DB, r)
+	routes.SetupReviewRoutes(config.DB, r)
 
 	// r.GET("/users", userController.GetAllUsers)
 	// r.GET("/users/:id", userController.GetUserByID)

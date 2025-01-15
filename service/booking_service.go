@@ -16,6 +16,7 @@ type BookingService interface {
 	GetBookingsByUserID(userID int) ([]entity.BookingRes, error)
 	GetBookingsByServiceID(serviceID int) ([]entity.BookingRes, error)
 	UpdateBookingStatus(bookingID string, status string) error
+	GetBookingReport() (entity.BookingReport, error)
 }
 
 type bookingService struct {
@@ -28,10 +29,10 @@ func NewBookingService(repo repository.BookingRepository) BookingService {
 
 func (s *bookingService) CreateBooking(req entity.CreateBookingReq) (entity.Booking, error) {
 	booking := entity.Booking{
-		UserID:      req.UserID,
-		ServiceID:   req.ServiceID,
-		Date:        req.Date,
-		Time:        req.Time,
+		UserID:    req.UserID,
+		ServiceID: req.ServiceID,
+		Date:      req.Date,
+		// Time:        req.Time,
 		Status:      "Pending", // Default status
 		Description: req.Description,
 	}
@@ -51,7 +52,7 @@ func (s *bookingService) UpdateBooking(req entity.UpdateBookingReq) (entity.Book
 	booking.UserID = req.UserID
 	booking.ServiceID = req.ServiceID
 	booking.Date = req.Date
-	booking.Time = req.Time
+	// booking.Time = req.Time
 	booking.Status = req.Status
 	booking.Description = req.Description
 
@@ -75,11 +76,11 @@ func (s *bookingService) GetBookingsByUserID(userID int) ([]entity.BookingRes, e
 	var bookingRes []entity.BookingRes
 	for _, booking := range bookings {
 		bookingRes = append(bookingRes, entity.BookingRes{
-			ID:          booking.ID,
-			UserID:      booking.UserID,
-			ServiceID:   booking.ServiceID,
-			Date:        booking.Date,
-			Time:        booking.Time,
+			ID:        booking.ID,
+			UserID:    booking.UserID,
+			ServiceID: booking.ServiceID,
+			Date:      booking.Date,
+			// Time:        booking.Time,
 			Status:      booking.Status,
 			Description: booking.Description,
 			CreatedAt:   booking.CreatedAt,
@@ -99,11 +100,11 @@ func (s *bookingService) GetBookingsByServiceID(serviceID int) ([]entity.Booking
 	var bookingRes []entity.BookingRes
 	for _, booking := range bookings {
 		bookingRes = append(bookingRes, entity.BookingRes{
-			ID:          booking.ID,
-			UserID:      booking.UserID,
-			ServiceID:   booking.ServiceID,
-			Date:        booking.Date,
-			Time:        booking.Time,
+			ID:        booking.ID,
+			UserID:    booking.UserID,
+			ServiceID: booking.ServiceID,
+			Date:      booking.Date,
+			// Time:        booking.Time,
 			Status:      booking.Status,
 			Description: booking.Description,
 			CreatedAt:   booking.CreatedAt,
@@ -121,7 +122,7 @@ func (s *bookingService) UpdateBookingStatus(bookingID string, status string) er
 		"In Progress": true,
 		"Completed":   true,
 		"Cancelled":   true,
-		"Rescheduled": true,
+		// "Rescheduled": true,
 	}
 
 	if !allowedStatuses[status] {
@@ -129,4 +130,44 @@ func (s *bookingService) UpdateBookingStatus(bookingID string, status string) er
 	}
 
 	return s.repo.UpdateBookingStatus(bookingID, status)
+}
+
+func (s *bookingService) GetBookingReport() (entity.BookingReport, error) {
+	// Ambil total booking
+	totalBooking, err := s.repo.GetTotalBookings()
+	if err != nil {
+		return entity.BookingReport{}, err
+	}
+
+	// Ambil jumlah booking berdasarkan status
+	pending, err := s.repo.GetBookingsByStatus("pending")
+	if err != nil {
+		return entity.BookingReport{}, err
+	}
+
+	inProgress, err := s.repo.GetBookingsByStatus("in_progress")
+	if err != nil {
+		return entity.BookingReport{}, err
+	}
+
+	completed, err := s.repo.GetBookingsByStatus("completed")
+	if err != nil {
+		return entity.BookingReport{}, err
+	}
+
+	canceled, err := s.repo.GetBookingsByStatus("canceled")
+	if err != nil {
+		return entity.BookingReport{}, err
+	}
+
+	// Buat response
+	report := entity.BookingReport{
+		TotalBooking:      int(totalBooking),
+		BookingPending:    int(pending),
+		BookingInProgress: int(inProgress),
+		BookingCompleted:  int(completed),
+		BookingCanceled:   int(canceled),
+	}
+
+	return report, nil
 }

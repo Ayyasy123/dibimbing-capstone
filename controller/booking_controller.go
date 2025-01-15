@@ -144,3 +144,15 @@ func (c *BookingController) UpdateBookingStatus(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Booking status updated successfully"})
 }
+
+func (c *BookingController) GetBookingReport(ctx *gin.Context) {
+	// Panggil service untuk mendapatkan laporan booking
+	report, err := c.service.GetBookingReport()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Kembalikan response JSON
+	ctx.JSON(http.StatusOK, report)
+}

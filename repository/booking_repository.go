@@ -14,6 +14,8 @@ type BookingRepository interface {
 	GetBookingsByUserID(userID int) ([]entity.Booking, error)
 	GetBookingsByServiceID(serviceID int) ([]entity.Booking, error)
 	UpdateBookingStatus(bookingID string, status string) error
+	GetTotalBookings() (int64, error)
+	GetBookingsByStatus(status string) (int64, error)
 }
 
 type bookingRepository struct {
@@ -69,4 +71,16 @@ func (r *bookingRepository) UpdateBookingStatus(bookingID string, status string)
 
 func (r *bookingRepository) CancelBooking(bookingID string) error {
 	return r.db.Model(&entity.Booking{}).Where("id = ?", bookingID).Update("status", "Cancelled").Error
+}
+
+func (r *bookingRepository) GetTotalBookings() (int64, error) {
+	var total int64
+	err := r.db.Model(&entity.Booking{}).Count(&total).Error
+	return total, err
+}
+
+func (r *bookingRepository) GetBookingsByStatus(status string) (int64, error) {
+	var count int64
+	err := r.db.Model(&entity.Booking{}).Where("status = ?", status).Count(&count).Error
+	return count, err
 }

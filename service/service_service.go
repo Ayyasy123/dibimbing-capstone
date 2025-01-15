@@ -11,6 +11,9 @@ type ServiceService interface {
 	UpdateService(req entity.UpdateServiceReq) (*entity.Service, error)
 	DeleteService(id int) error
 	GetAllServices() ([]entity.Service, error)
+	GetServicesByUserID(userID int) ([]entity.ServiceRes, error)
+	SearchServices(searchQuery string) ([]entity.Service, error)
+	GetServicesByPriceRange(minPrice, maxPrice int) ([]entity.ServiceRes, error)
 }
 
 type serviceService struct {
@@ -57,4 +60,52 @@ func (s *serviceService) DeleteService(id int) error {
 
 func (s *serviceService) GetAllServices() ([]entity.Service, error) {
 	return s.serviceRepo.FindAll()
+}
+
+func (s *serviceService) GetServicesByUserID(userID int) ([]entity.ServiceRes, error) {
+	services, err := s.serviceRepo.GetServicesByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var serviceRes []entity.ServiceRes
+	for _, service := range services {
+		serviceRes = append(serviceRes, entity.ServiceRes{
+			ID:          service.ID,
+			UserID:      service.UserID,
+			Name:        service.Name,
+			Description: service.Description,
+			Cost:        service.Cost,
+			CreatedAt:   service.CreatedAt,
+			UpdatedAt:   service.UpdatedAt,
+		})
+	}
+
+	return serviceRes, nil
+}
+
+func (s *serviceService) SearchServices(searchQuery string) ([]entity.Service, error) {
+	return s.serviceRepo.SearchServices(searchQuery)
+}
+
+func (s *serviceService) GetServicesByPriceRange(minPrice, maxPrice int) ([]entity.ServiceRes, error) {
+	services, err := s.serviceRepo.GetServicesByPriceRange(minPrice, maxPrice)
+	if err != nil {
+		return nil, err
+	}
+
+	var serviceRes []entity.ServiceRes
+	for _, service := range services {
+		serviceRes = append(serviceRes, entity.ServiceRes{
+			ID:          service.ID,
+			UserID:      service.UserID,
+			Name:        service.Name,
+			Description: service.Description,
+			Cost:        service.Cost,
+			CreatedAt:   service.CreatedAt,
+			UpdatedAt:   service.UpdatedAt,
+		})
+	}
+
+	return serviceRes, nil
 }

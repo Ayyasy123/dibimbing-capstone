@@ -15,6 +15,9 @@ type ServiceController interface {
 	UpdateService(c *gin.Context)
 	DeleteService(c *gin.Context)
 	GetAllServices(c *gin.Context)
+	GetServicesByUserID(ctx *gin.Context)
+	SearchServices(ctx *gin.Context)
+	GetServicesByPriceRange(ctx *gin.Context)
 }
 
 type serviceController struct {
@@ -38,7 +41,18 @@ func (ctrl *serviceController) CreateService(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, service)
+	// Gunakan ServiceRes untuk menghilangkan User dari response
+	serviceRes := entity.ServiceRes{
+		ID:          service.ID,
+		UserID:      service.UserID,
+		Name:        service.Name,
+		Description: service.Description,
+		Cost:        service.Cost,
+		CreatedAt:   service.CreatedAt,
+		UpdatedAt:   service.UpdatedAt,
+	}
+
+	c.JSON(http.StatusCreated, serviceRes)
 }
 
 func (ctrl *serviceController) GetServiceByID(c *gin.Context) {
@@ -70,7 +84,18 @@ func (ctrl *serviceController) UpdateService(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, service)
+	// Gunakan ServiceRes untuk menghilangkan User dari response
+	serviceRes := entity.ServiceRes{
+		ID:          service.ID,
+		UserID:      service.UserID,
+		Name:        service.Name,
+		Description: service.Description,
+		Cost:        service.Cost,
+		CreatedAt:   service.CreatedAt,
+		UpdatedAt:   service.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, serviceRes)
 }
 
 func (ctrl *serviceController) DeleteService(c *gin.Context) {
@@ -97,4 +122,75 @@ func (ctrl *serviceController) GetAllServices(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, services)
+}
+
+func (c *serviceController) GetServicesByUserID(ctx *gin.Context) {
+	userID, err := strconv.Atoi(ctx.Param("user_id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	services, err := c.serviceService.GetServicesByUserID(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, services)
+}
+
+func (ctrl *serviceController) SearchServices(c *gin.Context) {
+	searchQuery := c.Query("search") // Ambil parameter query string "search"
+
+	services, err := ctrl.serviceService.SearchServices(searchQuery)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, services)
+}
+
+func (c *serviceController) GetServicesByPriceRange(ctx *gin.Context) {
+	minPriceStr := ctx.Query("min_price")
+	maxPriceStr := ctx.Query("max_price")
+
+	var minPrice, maxPrice int
+	var err error
+
+	// Jika min_price tidak disebutkan, set ke 0
+	if minPriceStr == "" {
+		minPrice = 0
+	} else {
+		minPrice, err = strconv.Atoi(minPriceStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid min_price"})
+			return
+		}
+	}
+
+	// Jika max_price tidak disebutkan, set ke 100 juta
+	if maxPriceStr == "" {
+		maxPrice = 100000000
+	} else {
+		maxPrice, err = strconv.Atoi(maxPriceStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid max_price"})
+			return
+		}
+	}
+
+	if minPrice > maxPrice {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "min_price must be less than or equal to max_price"})
+		return
+	}
+
+	services, err := c.serviceService.GetServicesByPriceRange(minPrice, maxPrice)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, services)
 }

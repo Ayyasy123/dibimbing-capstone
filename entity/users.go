@@ -31,7 +31,6 @@ type LoginUserReq struct {
 
 type RegisterAsTechnicianReq struct {
 	ID           int    `json:"id" validate:"required"`
-	Role         string `json:"role" validate:"required"`
 	Address      string `json:"address" validate:"required"`
 	Phone        string `json:"phone" validate:"required"`
 	Expertise    string `json:"expertise" validate:"required"`

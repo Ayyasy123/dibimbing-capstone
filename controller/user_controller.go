@@ -40,13 +40,17 @@ func (c *UserController) Login(ctx *gin.Context) {
 		return
 	}
 
-	userRes, err := c.userService.Login(&req)
+	userRes, token, err := c.userService.Login(&req)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userRes)
+	// Kembalikan response dalam format yang diinginkan
+	ctx.JSON(http.StatusOK, gin.H{
+		"user":  userRes,
+		"token": token,
+	})
 }
 
 func (c *UserController) GetUserByID(ctx *gin.Context) {
@@ -137,4 +141,22 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "user deleted successfully"})
+}
+
+func (c *UserController) RegisterAsAdmin(ctx *gin.Context) {
+	var req entity.RegisterUserReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Panggil service untuk register sebagai admin
+	userRes, err := c.userService.RegisterAsAdmin(&req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Kembalikan response
+	ctx.JSON(http.StatusCreated, userRes)
 }

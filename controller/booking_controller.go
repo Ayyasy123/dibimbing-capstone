@@ -92,3 +92,55 @@ func (c *BookingController) GetAllBookings(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, bookings)
 }
+
+func (c *BookingController) GetBookingsByUserID(ctx *gin.Context) {
+	userID, err := strconv.Atoi(ctx.Param("user_id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	bookings, err := c.service.GetBookingsByUserID(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, bookings)
+}
+
+func (c *BookingController) GetBookingsByServiceID(ctx *gin.Context) {
+	serviceID, err := strconv.Atoi(ctx.Param("service_id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid service ID"})
+		return
+	}
+
+	bookings, err := c.service.GetBookingsByServiceID(serviceID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, bookings)
+}
+
+func (c *BookingController) UpdateBookingStatus(ctx *gin.Context) {
+	bookingID := ctx.Param("id")
+	var req struct {
+		Status string `json:"status"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	err := c.service.UpdateBookingStatus(bookingID, req.Status)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Booking status updated successfully"})
+}

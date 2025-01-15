@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"github.com/Ayyasy123/dibimbing-capstone.git/repository"
 )
@@ -11,6 +13,9 @@ type BookingService interface {
 	UpdateBooking(req entity.UpdateBookingReq) (entity.Booking, error)
 	DeleteBooking(id int) error
 	GetAllBookings() ([]entity.Booking, error)
+	GetBookingsByUserID(userID int) ([]entity.BookingRes, error)
+	GetBookingsByServiceID(serviceID int) ([]entity.BookingRes, error)
+	UpdateBookingStatus(bookingID string, status string) error
 }
 
 type bookingService struct {
@@ -59,4 +64,69 @@ func (s *bookingService) DeleteBooking(id int) error {
 
 func (s *bookingService) GetAllBookings() ([]entity.Booking, error) {
 	return s.repo.FindAll()
+}
+
+func (s *bookingService) GetBookingsByUserID(userID int) ([]entity.BookingRes, error) {
+	bookings, err := s.repo.GetBookingsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var bookingRes []entity.BookingRes
+	for _, booking := range bookings {
+		bookingRes = append(bookingRes, entity.BookingRes{
+			ID:          booking.ID,
+			UserID:      booking.UserID,
+			ServiceID:   booking.ServiceID,
+			Date:        booking.Date,
+			Time:        booking.Time,
+			Status:      booking.Status,
+			Description: booking.Description,
+			CreatedAt:   booking.CreatedAt,
+			UpdatedAt:   booking.UpdatedAt,
+		})
+	}
+
+	return bookingRes, nil
+}
+
+func (s *bookingService) GetBookingsByServiceID(serviceID int) ([]entity.BookingRes, error) {
+	bookings, err := s.repo.GetBookingsByServiceID(serviceID)
+	if err != nil {
+		return nil, err
+	}
+
+	var bookingRes []entity.BookingRes
+	for _, booking := range bookings {
+		bookingRes = append(bookingRes, entity.BookingRes{
+			ID:          booking.ID,
+			UserID:      booking.UserID,
+			ServiceID:   booking.ServiceID,
+			Date:        booking.Date,
+			Time:        booking.Time,
+			Status:      booking.Status,
+			Description: booking.Description,
+			CreatedAt:   booking.CreatedAt,
+			UpdatedAt:   booking.UpdatedAt,
+		})
+	}
+
+	return bookingRes, nil
+}
+
+func (s *bookingService) UpdateBookingStatus(bookingID string, status string) error {
+	// Validasi status yang diperbolehkan
+	allowedStatuses := map[string]bool{
+		"Confirmed":   true,
+		"In Progress": true,
+		"Completed":   true,
+		"Cancelled":   true,
+		"Rescheduled": true,
+	}
+
+	if !allowedStatuses[status] {
+		return errors.New("invalid status")
+	}
+
+	return s.repo.UpdateBookingStatus(bookingID, status)
 }

@@ -15,8 +15,6 @@ func main() {
 	// Setup Gin Router
 	r := gin.Default()
 
-	// r.POST("/register", service.CreateUserHandler)
-
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -28,15 +26,6 @@ func main() {
 	routes.SetupBookingRoutes(config.DB, r)
 	routes.SetupPaymentRoutes(config.DB, r)
 	routes.SetupReviewRoutes(config.DB, r)
-
-	// r.GET("/users", userController.GetAllUsers)
-	// r.GET("/users/:id", userController.GetUserByID)
-	// r.POST("/users", userController.CreateUser)
-	// r.PUT("/users", userController.UpdateUser)
-	// r.DELETE("/users/:id", userController.DeleteUser)
-
-	// r.POST("/register", userController.Register)
-	// r.GET("/login", userController.Login)
 
 	// Start the Server
 	log.Println("Server is running on http://localhost:8080")

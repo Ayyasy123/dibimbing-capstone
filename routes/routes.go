@@ -51,8 +51,7 @@ func SetupServiceRoutes(db *gorm.DB, router *gin.Engine) {
 		serviceRoutes.DELETE("/:id", middleware.RoleAuth("technician"), serviceController.DeleteService)
 		serviceRoutes.GET("", serviceController.GetAllServices)
 		serviceRoutes.GET("/user/:user_id", serviceController.GetServicesByUserID)
-		serviceRoutes.GET("/search", serviceController.SearchServices)
-		serviceRoutes.GET("/search/price", serviceController.GetServicesByPriceRange)
+		serviceRoutes.GET("/search", serviceController.SearchServices) /// services/search?search=plumbing&min_price=10000&max_price=50000
 	}
 }
 

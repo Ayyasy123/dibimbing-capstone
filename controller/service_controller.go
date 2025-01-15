@@ -16,8 +16,7 @@ type ServiceController interface {
 	DeleteService(c *gin.Context)
 	GetAllServices(c *gin.Context)
 	GetServicesByUserID(ctx *gin.Context)
-	SearchServices(ctx *gin.Context)
-	GetServicesByPriceRange(ctx *gin.Context)
+	SearchServices(c *gin.Context)
 }
 
 type serviceController struct {
@@ -142,19 +141,8 @@ func (c *serviceController) GetServicesByUserID(ctx *gin.Context) {
 
 func (ctrl *serviceController) SearchServices(c *gin.Context) {
 	searchQuery := c.Query("search") // Ambil parameter query string "search"
-
-	services, err := ctrl.serviceService.SearchServices(searchQuery)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, services)
-}
-
-func (c *serviceController) GetServicesByPriceRange(ctx *gin.Context) {
-	minPriceStr := ctx.Query("min_price")
-	maxPriceStr := ctx.Query("max_price")
+	minPriceStr := c.Query("min_price")
+	maxPriceStr := c.Query("max_price")
 
 	var minPrice, maxPrice int
 	var err error
@@ -165,7 +153,7 @@ func (c *serviceController) GetServicesByPriceRange(ctx *gin.Context) {
 	} else {
 		minPrice, err = strconv.Atoi(minPriceStr)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid min_price"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid min_price"})
 			return
 		}
 	}
@@ -176,21 +164,21 @@ func (c *serviceController) GetServicesByPriceRange(ctx *gin.Context) {
 	} else {
 		maxPrice, err = strconv.Atoi(maxPriceStr)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid max_price"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid max_price"})
 			return
 		}
 	}
 
 	if minPrice > maxPrice {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "min_price must be less than or equal to max_price"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "min_price must be less than or equal to max_price"})
 		return
 	}
 
-	services, err := c.serviceService.GetServicesByPriceRange(minPrice, maxPrice)
+	services, err := ctrl.serviceService.SearchServices(searchQuery, minPrice, maxPrice)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, services)
+	c.JSON(http.StatusOK, services)
 }

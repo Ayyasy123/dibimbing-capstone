@@ -12,8 +12,7 @@ type ServiceService interface {
 	DeleteService(id int) error
 	GetAllServices() ([]entity.Service, error)
 	GetServicesByUserID(userID int) ([]entity.ServiceRes, error)
-	SearchServices(searchQuery string) ([]entity.Service, error)
-	GetServicesByPriceRange(minPrice, maxPrice int) ([]entity.ServiceRes, error)
+	SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.ServiceRes, error)
 }
 
 type serviceService struct {
@@ -84,12 +83,8 @@ func (s *serviceService) GetServicesByUserID(userID int) ([]entity.ServiceRes, e
 	return serviceRes, nil
 }
 
-func (s *serviceService) SearchServices(searchQuery string) ([]entity.Service, error) {
-	return s.serviceRepo.SearchServices(searchQuery)
-}
-
-func (s *serviceService) GetServicesByPriceRange(minPrice, maxPrice int) ([]entity.ServiceRes, error) {
-	services, err := s.serviceRepo.GetServicesByPriceRange(minPrice, maxPrice)
+func (s *serviceService) SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.ServiceRes, error) {
+	services, err := s.serviceRepo.SearchServices(searchQuery, minPrice, maxPrice)
 	if err != nil {
 		return nil, err
 	}

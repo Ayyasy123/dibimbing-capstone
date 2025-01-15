@@ -14,8 +14,7 @@ type ServiceRepository interface {
 	Update(service *entity.Service) error
 	Delete(id int) error
 	GetServicesByUserID(userID int) ([]entity.Service, error)
-	SearchServices(searchQuery string) ([]entity.Service, error)
-	GetServicesByPriceRange(minPrice, maxPrice int) ([]entity.Service, error)
+	SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.Service, error)
 }
 
 type serviceRepository struct {
@@ -56,7 +55,7 @@ func (r *serviceRepository) GetServicesByUserID(userID int) ([]entity.Service, e
 	return services, err
 }
 
-func (r *serviceRepository) SearchServices(searchQuery string) ([]entity.Service, error) {
+func (r *serviceRepository) SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.Service, error) {
 	var services []entity.Service
 	query := r.db.Joins("JOIN users ON users.id = services.user_id")
 
@@ -68,12 +67,8 @@ func (r *serviceRepository) SearchServices(searchQuery string) ([]entity.Service
 		)
 	}
 
-	err := query.Preload("User").Find(&services).Error
-	return services, err
-}
+	query = query.Where("cost BETWEEN ? AND ?", minPrice, maxPrice)
 
-func (r *serviceRepository) GetServicesByPriceRange(minPrice, maxPrice int) ([]entity.Service, error) {
-	var services []entity.Service
-	err := r.db.Where("cost BETWEEN ? AND ?", minPrice, maxPrice).Find(&services).Error
+	err := query.Preload("User").Find(&services).Error
 	return services, err
 }

@@ -91,6 +91,7 @@ func SetupPaymentRoutes(db *gorm.DB, router *gin.Engine) {
 		paymentRoutes.PUT("", paymentController.UpdatePayment)
 		paymentRoutes.DELETE("/:id", paymentController.DeletePayment)
 		paymentRoutes.PUT("/:id/status", paymentController.UpdatePaymentStatus)
+		paymentRoutes.GET("/reports", paymentController.GetPaymentReport)
 	}
 }
 

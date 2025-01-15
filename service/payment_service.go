@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"github.com/Ayyasy123/dibimbing-capstone.git/repository"
@@ -14,6 +15,7 @@ type PaymentService interface {
 	DeletePayment(id int) error
 	GetAllPayments() ([]entity.Payment, error)
 	UpdatePaymentStatus(paymentID string, status string) error
+	GetPaymentReport(startDate, endDate time.Time) (entity.PaymentReport, error)
 }
 
 type paymentService struct {
@@ -72,4 +74,65 @@ func (s *paymentService) UpdatePaymentStatus(paymentID string, status string) er
 	}
 
 	return s.repo.UpdatePaymentStatus(paymentID, status)
+}
+
+func (s *paymentService) GetPaymentReport(startDate, endDate time.Time) (entity.PaymentReport, error) {
+	// Ambil total pembayaran (dengan atau tanpa filter tanggal)
+	totalPayment, err := s.repo.GetTotalPayments(startDate, endDate)
+	if err != nil {
+		return entity.PaymentReport{}, err
+	}
+
+	// Ambil total jumlah uang (dengan atau tanpa filter tanggal)
+	totalAmount, err := s.repo.GetTotalAmount(startDate, endDate)
+	if err != nil {
+		return entity.PaymentReport{}, err
+	}
+
+	// Ambil jumlah dan total uang untuk setiap status
+	paidCount, paidAmount, err := s.repo.GetPaymentsByStatus("paid", startDate, endDate)
+	if err != nil {
+		return entity.PaymentReport{}, err
+	}
+
+	pendingCount, pendingAmount, err := s.repo.GetPaymentsByStatus("pending", startDate, endDate)
+	if err != nil {
+		return entity.PaymentReport{}, err
+	}
+
+	refundedCount, refundedAmount, err := s.repo.GetPaymentsByStatus("refunded", startDate, endDate)
+	if err != nil {
+		return entity.PaymentReport{}, err
+	}
+
+	failedCount, failedAmount, err := s.repo.GetPaymentsByStatus("failed", startDate, endDate)
+	if err != nil {
+		return entity.PaymentReport{}, err
+	}
+
+	// Buat response
+	report := entity.PaymentReport{
+		TotalPayment: int(totalPayment),
+		TotalAmount:  totalAmount,
+		Status: []entity.PaymentStatusDetail{
+			{
+				PaymentPaid: int(paidCount),
+				AmountPaid:  paidAmount,
+			},
+			{
+				PaymentPending: int(pendingCount),
+				AmountPending:  pendingAmount,
+			},
+			{
+				PaymentRefunded: int(refundedCount),
+				AmountRefunded:  refundedAmount,
+			},
+			{
+				PaymentFailed: int(failedCount),
+				AmountFailed:  failedAmount,
+			},
+		},
+	}
+
+	return report, nil
 }

@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"github.com/Ayyasy123/dibimbing-capstone.git/service"
@@ -111,4 +112,40 @@ func (c *PaymentController) UpdatePaymentStatus(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Payment status updated successfully"})
+}
+
+func (c *PaymentController) GetPaymentReport(ctx *gin.Context) {
+	// Ambil parameter tanggal dari query string
+	startDateStr := ctx.Query("start_date")
+	endDateStr := ctx.Query("end_date")
+
+	var startDate, endDate time.Time
+	var err error
+
+	// Parse tanggal jika parameter diberikan
+	if startDateStr != "" {
+		startDate, err = time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
+			return
+		}
+	}
+
+	if endDateStr != "" {
+		endDate, err = time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
+			return
+		}
+	}
+
+	// Panggil service untuk mendapatkan laporan pembayaran
+	report, err := c.service.GetPaymentReport(startDate, endDate)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Kembalikan response JSON
+	ctx.JSON(http.StatusOK, report)
 }

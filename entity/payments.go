@@ -37,3 +37,20 @@ type PaymentRes struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type PaymentReport struct {
+	TotalPayment int                   `json:"total_payment"`
+	TotalAmount  float64               `json:"total_amount"`
+	Status       []PaymentStatusDetail `json:"status"`
+}
+
+type PaymentStatusDetail struct {
+	PaymentPaid     int     `json:"payment_paid"`
+	AmountPaid      float64 `json:"amount_paid"`
+	PaymentPending  int     `json:"payment_pending"`
+	AmountPending   float64 `json:"amount_pending"`
+	PaymentRefunded int     `json:"payment_refunded"`
+	AmountRefunded  float64 `json:"amount_refunded"`
+	PaymentFailed   int     `json:"payment_failed"`
+	AmountFailed    float64 `json:"amount_failed"`
+}

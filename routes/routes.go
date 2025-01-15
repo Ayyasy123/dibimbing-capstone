@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/Ayyasy123/dibimbing-capstone.git/controller"
+	"github.com/Ayyasy123/dibimbing-capstone.git/middleware"
 	"github.com/Ayyasy123/dibimbing-capstone.git/repository"
 	"github.com/Ayyasy123/dibimbing-capstone.git/service"
 	"github.com/gin-gonic/gin"
@@ -13,31 +14,26 @@ func SetupUserRoutes(db *gorm.DB, router *gin.Engine) {
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
+	// Public routes (no authentication required)
 	router.POST("/register", userController.Register)
 	router.POST("/login", userController.Login)
-	router.GET("/users/:id", userController.GetUserByID)
-	router.GET("/users", userController.GetAllUsers)
-	router.PUT("/users/:id", userController.UpdateUser)
-	router.DELETE("/users/:id", userController.DeleteUser)
+	// Endpoint untuk register sebagai admin (hanya bisa diakses oleh admin)
+	router.POST("/register-admin", userController.RegisterAsAdmin)
 
-	// userRoutes := router.Group("/users")
-	// {
-	// 	// userRoutes.POST("/register", userController.RegisterUser)
-	// 	userRoutes.GET("/:id", userController.GetUserByID)
-	// 	userRoutes.PUT("/:id", userController.UpdateUser)
-	// 	userRoutes.DELETE("/:id", userController.DeleteUser)
+	// Protected routes (require JWT authentication)
+	userRoutes := router.Group("/users")
+	userRoutes.Use(middleware.JWTAuth())
+	{
+		userRoutes.GET("/:id", userController.GetUserByID)
+		userRoutes.GET("", userController.GetAllUsers)
+		userRoutes.PUT("", userController.UpdateUser)
+		userRoutes.DELETE("/:id", userController.DeleteUser)
 
-	// 	// userRoutes.GET("/users/:id", userController.GetUserByID)
-	// 	userRoutes.GET("/all", userController.GetAllUsers)
-	// 	// userRoutes.POST("/users", userController.CreateUser)
-	// 	// userRoutes.PUT("/users", userController.UpdateUser)
-	// 	// userRoutes.DELETE("/users/:id", userController.DeleteUser)
+		// Role-based routes
+		userRoutes.POST("/register-technician", userController.RegisterAsTechnician)
+		userRoutes.PUT("/update-technician", middleware.RoleAuth("technician", "admin"), userController.UpdateTechnician)
 
-	// 	userRoutes.POST("/register", userController.Register)
-	// 	userRoutes.GET("/login", userController.Login)
-
-	// }
-
+	}
 }
 
 func SetupServiceRoutes(db *gorm.DB, router *gin.Engine) {
@@ -45,11 +41,19 @@ func SetupServiceRoutes(db *gorm.DB, router *gin.Engine) {
 	serviceService := service.NewServiceService(serviceRepo)
 	serviceController := controller.NewServiceController(serviceService)
 
-	router.POST("/services", serviceController.CreateService)
-	router.GET("/services/:id", serviceController.GetServiceByID)
-	router.PUT("/services", serviceController.UpdateService)
-	router.DELETE("/services/:id", serviceController.DeleteService)
-	router.GET("/services", serviceController.GetAllServices)
+	// Protected routes (require JWT authentication)
+	serviceRoutes := router.Group("/services")
+	serviceRoutes.Use(middleware.JWTAuth())
+	{
+		serviceRoutes.POST("", middleware.RoleAuth("technician"), serviceController.CreateService)
+		serviceRoutes.GET("/:id", serviceController.GetServiceByID)
+		serviceRoutes.PUT("", middleware.RoleAuth("technician"), serviceController.UpdateService)
+		serviceRoutes.DELETE("/:id", middleware.RoleAuth("technician"), serviceController.DeleteService)
+		serviceRoutes.GET("", serviceController.GetAllServices)
+		serviceRoutes.GET("/user/:user_id", serviceController.GetServicesByUserID)
+		serviceRoutes.GET("/search", serviceController.SearchServices)
+		serviceRoutes.GET("/search/price", serviceController.GetServicesByPriceRange)
+	}
 }
 
 func SetupBookingRoutes(db *gorm.DB, router *gin.Engine) {
@@ -57,12 +61,19 @@ func SetupBookingRoutes(db *gorm.DB, router *gin.Engine) {
 	bookingService := service.NewBookingService(bookingRepo)
 	bookingController := controller.NewBookingController(bookingService)
 
-	// Booking routes
-	router.GET("/bookings", bookingController.GetAllBookings)
-	router.GET("/bookings/:id", bookingController.GetBookingByID)
-	router.POST("/bookings", bookingController.CreateBooking)
-	router.PUT("/bookings", bookingController.UpdateBooking)
-	router.DELETE("/bookings/:id", bookingController.DeleteBooking)
+	// Protected routes (require JWT authentication)
+	bookingRoutes := router.Group("/bookings")
+	bookingRoutes.Use(middleware.JWTAuth())
+	{
+		bookingRoutes.GET("", bookingController.GetAllBookings)
+		bookingRoutes.GET("/:id", bookingController.GetBookingByID)
+		bookingRoutes.POST("", bookingController.CreateBooking)
+		bookingRoutes.PUT("", bookingController.UpdateBooking)
+		bookingRoutes.DELETE("/:id", bookingController.DeleteBooking)
+		bookingRoutes.GET("/user/:user_id", bookingController.GetBookingsByUserID)
+		bookingRoutes.GET("/service/:service_id", bookingController.GetBookingsByServiceID)
+		bookingRoutes.PUT("/:id/status", bookingController.UpdateBookingStatus)
+	}
 }
 
 func SetupPaymentRoutes(db *gorm.DB, router *gin.Engine) {
@@ -70,12 +81,17 @@ func SetupPaymentRoutes(db *gorm.DB, router *gin.Engine) {
 	paymentService := service.NewPaymentService(paymentRepo)
 	paymentController := controller.NewPaymentController(paymentService)
 
-	// Payment routes
-	router.GET("/payments", paymentController.GetAllPayments)
-	router.GET("/payments/:id", paymentController.GetPaymentByID)
-	router.POST("/payments", paymentController.CreatePayment)
-	router.PUT("/payments", paymentController.UpdatePayment)
-	router.DELETE("/payments/:id", paymentController.DeletePayment)
+	// Protected routes (require JWT authentication)
+	paymentRoutes := router.Group("/payments")
+	paymentRoutes.Use(middleware.JWTAuth())
+	{
+		paymentRoutes.GET("", paymentController.GetAllPayments)
+		paymentRoutes.GET("/:id", paymentController.GetPaymentByID)
+		paymentRoutes.POST("", paymentController.CreatePayment)
+		paymentRoutes.PUT("", paymentController.UpdatePayment)
+		paymentRoutes.DELETE("/:id", paymentController.DeletePayment)
+		paymentRoutes.PUT("/:id/status", paymentController.UpdatePaymentStatus)
+	}
 }
 
 func SetupReviewRoutes(db *gorm.DB, router *gin.Engine) {
@@ -83,10 +99,14 @@ func SetupReviewRoutes(db *gorm.DB, router *gin.Engine) {
 	reviewService := service.NewReviewService(reviewRepo)
 	reviewController := controller.NewReviewController(reviewService)
 
-	// Review routes
-	router.GET("/reviews", reviewController.GetAllReviews)
-	router.GET("/reviews/:id", reviewController.GetReviewByID)
-	router.POST("/reviews", reviewController.CreateReview)
-	router.PUT("/reviews", reviewController.UpdateReview)
-	router.DELETE("/reviews/:id", reviewController.DeleteReview)
+	// Protected routes (require JWT authentication)
+	reviewRoutes := router.Group("/reviews")
+	reviewRoutes.Use(middleware.JWTAuth())
+	{
+		reviewRoutes.GET("", reviewController.GetAllReviews)
+		reviewRoutes.GET("/:id", reviewController.GetReviewByID)
+		reviewRoutes.POST("", reviewController.CreateReview)
+		reviewRoutes.PUT("", reviewController.UpdateReview)
+		reviewRoutes.DELETE("/:id", reviewController.DeleteReview)
+	}
 }

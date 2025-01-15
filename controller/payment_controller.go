@@ -92,3 +92,23 @@ func (c *PaymentController) GetAllPayments(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, payments)
 }
+
+func (c *PaymentController) UpdatePaymentStatus(ctx *gin.Context) {
+	paymentID := ctx.Param("id")
+	var req struct {
+		Status string `json:"status"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	err := c.service.UpdatePaymentStatus(paymentID, req.Status)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Payment status updated successfully"})
+}

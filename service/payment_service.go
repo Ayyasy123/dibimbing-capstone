@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"github.com/Ayyasy123/dibimbing-capstone.git/repository"
 )
@@ -11,6 +13,7 @@ type PaymentService interface {
 	UpdatePayment(req entity.UpdatePaymentReq) (entity.Payment, error)
 	DeletePayment(id int) error
 	GetAllPayments() ([]entity.Payment, error)
+	UpdatePaymentStatus(paymentID string, status string) error
 }
 
 type paymentService struct {
@@ -53,4 +56,20 @@ func (s *paymentService) DeletePayment(id int) error {
 
 func (s *paymentService) GetAllPayments() ([]entity.Payment, error) {
 	return s.repo.FindAll()
+}
+
+func (s *paymentService) UpdatePaymentStatus(paymentID string, status string) error {
+	// Validasi status yang diperbolehkan
+	allowedStatuses := map[string]bool{
+		"Paid":     true,
+		"Failed":   true,
+		"Refunded": true,
+		"Expired":  true,
+	}
+
+	if !allowedStatuses[status] {
+		return errors.New("invalid status")
+	}
+
+	return s.repo.UpdatePaymentStatus(paymentID, status)
 }

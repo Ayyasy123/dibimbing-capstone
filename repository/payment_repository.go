@@ -11,6 +11,7 @@ type PaymentRepository interface {
 	Update(payment entity.Payment) (entity.Payment, error)
 	Delete(id int) error
 	FindAll() ([]entity.Payment, error)
+	UpdatePaymentStatus(paymentID string, status string) error
 }
 
 type paymentRepository struct {
@@ -46,4 +47,8 @@ func (r *paymentRepository) FindAll() ([]entity.Payment, error) {
 	var payments []entity.Payment
 	err := r.db.Preload("Booking").Find(&payments).Error
 	return payments, err
+}
+
+func (r *paymentRepository) UpdatePaymentStatus(paymentID string, status string) error {
+	return r.db.Model(&entity.Payment{}).Where("id = ?", paymentID).Update("status", status).Error
 }

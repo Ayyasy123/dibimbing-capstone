@@ -45,12 +45,7 @@ type PaymentReport struct {
 }
 
 type PaymentStatusDetail struct {
-	PaymentPaid     int     `json:"payment_paid"`
-	AmountPaid      float64 `json:"amount_paid"`
-	PaymentPending  int     `json:"payment_pending"`
-	AmountPending   float64 `json:"amount_pending"`
-	PaymentRefunded int     `json:"payment_refunded"`
-	AmountRefunded  float64 `json:"amount_refunded"`
-	PaymentFailed   int     `json:"payment_failed"`
-	AmountFailed    float64 `json:"amount_failed"`
+	PaymentStatus string  `json:"payment_status"`
+	PaymentCount  int     `json:"payment_count"`
+	Amount        float64 `json:"amount"`
 }

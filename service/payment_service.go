@@ -77,13 +77,13 @@ func (s *paymentService) UpdatePaymentStatus(paymentID string, status string) er
 }
 
 func (s *paymentService) GetPaymentReport(startDate, endDate time.Time, serviceID int) (entity.PaymentReport, error) {
-	// Ambil total pembayaran (dengan atau tanpa filter tanggal dan service_id)
+	// Ambil total pembayaran
 	totalPayment, err := s.repo.GetTotalPayments(startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}
 
-	// Ambil total jumlah uang (dengan atau tanpa filter tanggal dan service_id)
+	// Ambil total jumlah uang
 	totalAmount, err := s.repo.GetTotalAmount(startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
@@ -116,20 +116,24 @@ func (s *paymentService) GetPaymentReport(startDate, endDate time.Time, serviceI
 		TotalAmount:  totalAmount,
 		Status: []entity.PaymentStatusDetail{
 			{
-				PaymentPaid: int(paidCount),
-				AmountPaid:  paidAmount,
+				PaymentStatus: "Paid",
+				PaymentCount:  int(paidCount),
+				Amount:        paidAmount,
 			},
 			{
-				PaymentPending: int(pendingCount),
-				AmountPending:  pendingAmount,
+				PaymentStatus: "Pending",
+				PaymentCount:  int(pendingCount),
+				Amount:        pendingAmount,
 			},
 			{
-				PaymentRefunded: int(refundedCount),
-				AmountRefunded:  refundedAmount,
+				PaymentStatus: "Refunded",
+				PaymentCount:  int(refundedCount),
+				Amount:        refundedAmount,
 			},
 			{
-				PaymentFailed: int(failedCount),
-				AmountFailed:  failedAmount,
+				PaymentStatus: "Failed",
+				PaymentCount:  int(failedCount),
+				Amount:        failedAmount,
 			},
 		},
 	}

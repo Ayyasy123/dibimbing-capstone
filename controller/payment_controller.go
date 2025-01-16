@@ -119,6 +119,10 @@ func (c *PaymentController) GetPaymentReport(ctx *gin.Context) {
 	startDateStr := ctx.Query("start_date")
 	endDateStr := ctx.Query("end_date")
 
+	// Ambil parameter service_id dari query string
+	serviceIDStr := ctx.Query("service_id")
+	serviceID, _ := strconv.Atoi(serviceIDStr) // Jika tidak ada, serviceID akan 0
+
 	var startDate, endDate time.Time
 	var err error
 
@@ -140,7 +144,7 @@ func (c *PaymentController) GetPaymentReport(ctx *gin.Context) {
 	}
 
 	// Panggil service untuk mendapatkan laporan pembayaran
-	report, err := c.service.GetPaymentReport(startDate, endDate)
+	report, err := c.service.GetPaymentReport(startDate, endDate, serviceID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

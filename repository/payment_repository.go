@@ -14,9 +14,9 @@ type PaymentRepository interface {
 	Delete(id int) error
 	FindAll() ([]entity.Payment, error)
 	UpdatePaymentStatus(paymentID string, status string) error
-	GetTotalPayments(startDate, endDate time.Time) (int64, error)
-	GetTotalAmount(startDate, endDate time.Time) (float64, error)
-	GetPaymentsByStatus(status string, startDate, endDate time.Time) (int64, float64, error)
+	GetTotalPayments(startDate, endDate time.Time, serviceID int) (int64, error)
+	GetTotalAmount(startDate, endDate time.Time, serviceID int) (float64, error)
+	GetPaymentsByStatus(status string, startDate, endDate time.Time, serviceID int) (int64, float64, error)
 }
 
 type paymentRepository struct {
@@ -58,7 +58,7 @@ func (r *paymentRepository) UpdatePaymentStatus(paymentID string, status string)
 	return r.db.Model(&entity.Payment{}).Where("id = ?", paymentID).Update("status", status).Error
 }
 
-func (r *paymentRepository) GetTotalPayments(startDate, endDate time.Time) (int64, error) {
+func (r *paymentRepository) GetTotalPayments(startDate, endDate time.Time, serviceID int) (int64, error) {
 	var total int64
 	query := r.db.Model(&entity.Payment{})
 
@@ -67,31 +67,49 @@ func (r *paymentRepository) GetTotalPayments(startDate, endDate time.Time) (int6
 		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
 	}
 
+	// Tambahkan filter service_id jika diberikan
+	if serviceID > 0 {
+		query = query.Joins("JOIN bookings ON bookings.id = payments.booking_id").
+			Where("bookings.service_id = ?", serviceID)
+	}
+
 	err := query.Count(&total).Error
 	return total, err
 }
 
-func (r *paymentRepository) GetTotalAmount(startDate, endDate time.Time) (float64, error) {
+func (r *paymentRepository) GetTotalAmount(startDate, endDate time.Time, serviceID int) (float64, error) {
 	var totalAmount float64
-	query := r.db.Model(&entity.Payment{}).Select("COALESCE(SUM(amount), 0)")
+	query := r.db.Model(&entity.Payment{}).Select("COALESCE(SUM(payments.amount), 0)")
 
 	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
 	if !startDate.IsZero() && !endDate.IsZero() {
-		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+		query = query.Where("payments.created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	// Tambahkan filter service_id jika diberikan
+	if serviceID > 0 {
+		query = query.Joins("JOIN bookings ON bookings.id = payments.booking_id").
+			Where("bookings.service_id = ?", serviceID)
 	}
 
 	err := query.Scan(&totalAmount).Error
 	return totalAmount, err
 }
 
-func (r *paymentRepository) GetPaymentsByStatus(status string, startDate, endDate time.Time) (int64, float64, error) {
+func (r *paymentRepository) GetPaymentsByStatus(status string, startDate, endDate time.Time, serviceID int) (int64, float64, error) {
 	var count int64
 	var totalAmount float64
-	query := r.db.Model(&entity.Payment{}).Where("status = ?", status)
+	query := r.db.Model(&entity.Payment{}).Where("payments.status = ?", status)
 
 	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
 	if !startDate.IsZero() && !endDate.IsZero() {
-		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+		query = query.Where("payments.created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	// Tambahkan filter service_id jika diberikan
+	if serviceID > 0 {
+		query = query.Joins("JOIN bookings ON bookings.id = payments.booking_id").
+			Where("bookings.service_id = ?", serviceID)
 	}
 
 	// Hitung jumlah pembayaran dan total uang
@@ -100,7 +118,7 @@ func (r *paymentRepository) GetPaymentsByStatus(status string, startDate, endDat
 		return 0, 0, err
 	}
 
-	err = query.Select("COALESCE(SUM(amount), 0)").Scan(&totalAmount).Error
+	err = query.Select("COALESCE(SUM(payments.amount), 0)").Scan(&totalAmount).Error
 	if err != nil {
 		return 0, 0, err
 	}

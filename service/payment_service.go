@@ -15,7 +15,7 @@ type PaymentService interface {
 	DeletePayment(id int) error
 	GetAllPayments() ([]entity.Payment, error)
 	UpdatePaymentStatus(paymentID string, status string) error
-	GetPaymentReport(startDate, endDate time.Time) (entity.PaymentReport, error)
+	GetPaymentReport(startDate, endDate time.Time, serviceID int) (entity.PaymentReport, error)
 }
 
 type paymentService struct {
@@ -76,36 +76,36 @@ func (s *paymentService) UpdatePaymentStatus(paymentID string, status string) er
 	return s.repo.UpdatePaymentStatus(paymentID, status)
 }
 
-func (s *paymentService) GetPaymentReport(startDate, endDate time.Time) (entity.PaymentReport, error) {
-	// Ambil total pembayaran (dengan atau tanpa filter tanggal)
-	totalPayment, err := s.repo.GetTotalPayments(startDate, endDate)
+func (s *paymentService) GetPaymentReport(startDate, endDate time.Time, serviceID int) (entity.PaymentReport, error) {
+	// Ambil total pembayaran (dengan atau tanpa filter tanggal dan service_id)
+	totalPayment, err := s.repo.GetTotalPayments(startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}
 
-	// Ambil total jumlah uang (dengan atau tanpa filter tanggal)
-	totalAmount, err := s.repo.GetTotalAmount(startDate, endDate)
+	// Ambil total jumlah uang (dengan atau tanpa filter tanggal dan service_id)
+	totalAmount, err := s.repo.GetTotalAmount(startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}
 
 	// Ambil jumlah dan total uang untuk setiap status
-	paidCount, paidAmount, err := s.repo.GetPaymentsByStatus("paid", startDate, endDate)
+	paidCount, paidAmount, err := s.repo.GetPaymentsByStatus("paid", startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}
 
-	pendingCount, pendingAmount, err := s.repo.GetPaymentsByStatus("pending", startDate, endDate)
+	pendingCount, pendingAmount, err := s.repo.GetPaymentsByStatus("pending", startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}
 
-	refundedCount, refundedAmount, err := s.repo.GetPaymentsByStatus("refunded", startDate, endDate)
+	refundedCount, refundedAmount, err := s.repo.GetPaymentsByStatus("refunded", startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}
 
-	failedCount, failedAmount, err := s.repo.GetPaymentsByStatus("failed", startDate, endDate)
+	failedCount, failedAmount, err := s.repo.GetPaymentsByStatus("failed", startDate, endDate, serviceID)
 	if err != nil {
 		return entity.PaymentReport{}, err
 	}

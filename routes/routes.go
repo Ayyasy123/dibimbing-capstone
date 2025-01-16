@@ -109,5 +109,6 @@ func SetupReviewRoutes(db *gorm.DB, router *gin.Engine) {
 		reviewRoutes.POST("", reviewController.CreateReview)
 		reviewRoutes.PUT("", reviewController.UpdateReview)
 		reviewRoutes.DELETE("/:id", reviewController.DeleteReview)
+		reviewRoutes.GET("/reports", reviewController.GetReviewReport)
 	}
 }

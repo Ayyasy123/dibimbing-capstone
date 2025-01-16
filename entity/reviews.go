@@ -37,3 +37,14 @@ type ReviewRes struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type ReviewReport struct {
+	TotalReviews       int                  `json:"total_reviews"`
+	AverageRating      float64              `json:"average_rating"`
+	RatingDistribution []RatingDistribution `json:"rating_distribution"`
+}
+
+type RatingDistribution struct {
+	Rating int `json:"rating"`
+	Count  int `json:"count"`
+}

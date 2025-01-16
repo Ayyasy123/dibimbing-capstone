@@ -106,21 +106,33 @@ func (r *bookingRepository) GetTotalRevenue(startDate, endDate time.Time) (float
 func (r *bookingRepository) GetBookingsByStatus(status string, startDate, endDate time.Time) (int64, float64, error) {
 	var count int64
 	var totalRevenue float64
-	query := r.db.Model(&entity.Booking{}).Where("status = ?", status)
 
-	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
+	// Query to count bookings by status
+	query := r.db.Model(&entity.Booking{}).Where("bookings.status = ?", status)
+
+	// Add date filter if provided
 	if !startDate.IsZero() && !endDate.IsZero() {
-		query = query.Where("date BETWEEN ? AND ?", startDate, endDate)
+		query = query.Where("bookings.date BETWEEN ? AND ?", startDate, endDate)
 	}
 
-	// Hitung jumlah booking dan total pendapatan
+	// Count the number of bookings
 	err := query.Count(&count).Error
 	if err != nil {
 		return 0, 0, err
 	}
 
-	err = query.Joins("JOIN payments ON payments.booking_id = bookings.id").
-		Select("COALESCE(SUM(payments.amount), 0)").Scan(&totalRevenue).Error
+	// Query to calculate total revenue for the given status
+	revenueQuery := r.db.Model(&entity.Booking{}).
+		Joins("JOIN payments ON payments.booking_id = bookings.id").
+		Where("bookings.status = ?", status)
+
+	// Add date filter if provided
+	if !startDate.IsZero() && !endDate.IsZero() {
+		revenueQuery = revenueQuery.Where("bookings.date BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	// Sum the payment amounts
+	err = revenueQuery.Select("COALESCE(SUM(payments.amount), 0)").Scan(&totalRevenue).Error
 	if err != nil {
 		return 0, 0, err
 	}

@@ -134,61 +134,44 @@ func (s *bookingService) UpdateBookingStatus(bookingID string, status string) er
 }
 
 func (s *bookingService) GetBookingReport(startDate, endDate time.Time) (entity.BookingReport, error) {
-	// Ambil total booking (dengan atau tanpa filter tanggal)
+	// Get total bookings
 	totalBooking, err := s.repo.GetTotalBookings(startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
-	// Ambil total pendapatan (dengan atau tanpa filter tanggal)
+	// Get total revenue
 	totalRevenue, err := s.repo.GetTotalRevenue(startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
-	// Ambil jumlah dan total pendapatan untuk setiap status
-	pendingCount, pendingRevenue, err := s.repo.GetBookingsByStatus("pending", startDate, endDate)
-	if err != nil {
-		return entity.BookingReport{}, err
+	// Define the statuses to query
+	statuses := []string{"Pending", "In Progress", "Completed", "Canceled"}
+
+	// Initialize the status details array
+	statusDetails := []entity.BookingStatusDetail{}
+
+	// Loop through each status and get the count and revenue
+	for _, status := range statuses {
+		count, revenue, err := s.repo.GetBookingsByStatus(status, startDate, endDate)
+		if err != nil {
+			return entity.BookingReport{}, err
+		}
+
+		// Append the status details to the array
+		statusDetails = append(statusDetails, entity.BookingStatusDetail{
+			BookingStatus: status,
+			BookingCount:  int(count),
+			Revenue:       revenue,
+		})
 	}
 
-	inProgressCount, inProgressRevenue, err := s.repo.GetBookingsByStatus("in_progress", startDate, endDate)
-	if err != nil {
-		return entity.BookingReport{}, err
-	}
-
-	completedCount, completedRevenue, err := s.repo.GetBookingsByStatus("completed", startDate, endDate)
-	if err != nil {
-		return entity.BookingReport{}, err
-	}
-
-	canceledCount, canceledRevenue, err := s.repo.GetBookingsByStatus("canceled", startDate, endDate)
-	if err != nil {
-		return entity.BookingReport{}, err
-	}
-
-	// Buat response
+	// Create the report
 	report := entity.BookingReport{
 		TotalBooking: int(totalBooking),
 		TotalRevenue: totalRevenue,
-		Status: []entity.BookingStatusDetail{
-			{
-				BookingPending: int(pendingCount),
-				RevenuePending: pendingRevenue,
-			},
-			{
-				BookingInProgress: int(inProgressCount),
-				RevenueInProgress: inProgressRevenue,
-			},
-			{
-				BookingCompleted: int(completedCount),
-				RevenueCompleted: completedRevenue,
-			},
-			{
-				BookingCanceled: int(canceledCount),
-				RevenueCanceled: canceledRevenue,
-			},
-		},
+		Status:       statusDetails,
 	}
 
 	return report, nil

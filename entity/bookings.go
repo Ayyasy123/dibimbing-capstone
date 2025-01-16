@@ -56,12 +56,7 @@ type BookingReport struct {
 }
 
 type BookingStatusDetail struct {
-	BookingPending    int     `json:"booking_pending"`
-	RevenuePending    float64 `json:"revenue_pending"`
-	BookingInProgress int     `json:"booking_in_progress"`
-	RevenueInProgress float64 `json:"revenue_in_progress"`
-	BookingCompleted  int     `json:"booking_completed"`
-	RevenueCompleted  float64 `json:"revenue_completed"`
-	BookingCanceled   int     `json:"booking_canceled"`
-	RevenueCanceled   float64 `json:"revenue_canceled"`
+	BookingStatus string  `json:"booking_status"` // e.g., "pending", "in_progress", "completed", "canceled"
+	BookingCount  int     `json:"booking_count"`  // e.g., 40, 20, etc.
+	Revenue       float64 `json:"revenue"`        // e.g., 4000000, 2000000, etc.
 }

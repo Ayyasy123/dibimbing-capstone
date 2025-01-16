@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"github.com/Ayyasy123/dibimbing-capstone.git/repository"
@@ -16,7 +17,7 @@ type BookingService interface {
 	GetBookingsByUserID(userID int) ([]entity.BookingRes, error)
 	GetBookingsByServiceID(serviceID int) ([]entity.BookingRes, error)
 	UpdateBookingStatus(bookingID string, status string) error
-	GetBookingReport() (entity.BookingReport, error)
+	GetBookingReport(startDate, endDate time.Time) (entity.BookingReport, error)
 }
 
 type bookingService struct {
@@ -132,41 +133,62 @@ func (s *bookingService) UpdateBookingStatus(bookingID string, status string) er
 	return s.repo.UpdateBookingStatus(bookingID, status)
 }
 
-func (s *bookingService) GetBookingReport() (entity.BookingReport, error) {
-	// Ambil total booking
-	totalBooking, err := s.repo.GetTotalBookings()
+func (s *bookingService) GetBookingReport(startDate, endDate time.Time) (entity.BookingReport, error) {
+	// Ambil total booking (dengan atau tanpa filter tanggal)
+	totalBooking, err := s.repo.GetTotalBookings(startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
-	// Ambil jumlah booking berdasarkan status
-	pending, err := s.repo.GetBookingsByStatus("pending")
+	// Ambil total pendapatan (dengan atau tanpa filter tanggal)
+	totalRevenue, err := s.repo.GetTotalRevenue(startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
-	inProgress, err := s.repo.GetBookingsByStatus("in_progress")
+	// Ambil jumlah dan total pendapatan untuk setiap status
+	pendingCount, pendingRevenue, err := s.repo.GetBookingsByStatus("pending", startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
-	completed, err := s.repo.GetBookingsByStatus("completed")
+	inProgressCount, inProgressRevenue, err := s.repo.GetBookingsByStatus("in_progress", startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
-	canceled, err := s.repo.GetBookingsByStatus("canceled")
+	completedCount, completedRevenue, err := s.repo.GetBookingsByStatus("completed", startDate, endDate)
+	if err != nil {
+		return entity.BookingReport{}, err
+	}
+
+	canceledCount, canceledRevenue, err := s.repo.GetBookingsByStatus("canceled", startDate, endDate)
 	if err != nil {
 		return entity.BookingReport{}, err
 	}
 
 	// Buat response
 	report := entity.BookingReport{
-		TotalBooking:      int(totalBooking),
-		BookingPending:    int(pending),
-		BookingInProgress: int(inProgress),
-		BookingCompleted:  int(completed),
-		BookingCanceled:   int(canceled),
+		TotalBooking: int(totalBooking),
+		TotalRevenue: totalRevenue,
+		Status: []entity.BookingStatusDetail{
+			{
+				BookingPending: int(pendingCount),
+				RevenuePending: pendingRevenue,
+			},
+			{
+				BookingInProgress: int(inProgressCount),
+				RevenueInProgress: inProgressRevenue,
+			},
+			{
+				BookingCompleted: int(completedCount),
+				RevenueCompleted: completedRevenue,
+			},
+			{
+				BookingCanceled: int(canceledCount),
+				RevenueCanceled: canceledRevenue,
+			},
+		},
 	}
 
 	return report, nil

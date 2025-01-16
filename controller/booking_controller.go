@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"github.com/Ayyasy123/dibimbing-capstone.git/service"
@@ -146,8 +147,32 @@ func (c *BookingController) UpdateBookingStatus(ctx *gin.Context) {
 }
 
 func (c *BookingController) GetBookingReport(ctx *gin.Context) {
+	// Ambil parameter tanggal dari query string
+	startDateStr := ctx.Query("start_date")
+	endDateStr := ctx.Query("end_date")
+
+	var startDate, endDate time.Time
+	var err error
+
+	// Parse tanggal jika parameter diberikan
+	if startDateStr != "" {
+		startDate, err = time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format"})
+			return
+		}
+	}
+
+	if endDateStr != "" {
+		endDate, err = time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format"})
+			return
+		}
+	}
+
 	// Panggil service untuk mendapatkan laporan booking
-	report, err := c.service.GetBookingReport()
+	report, err := c.service.GetBookingReport(startDate, endDate)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

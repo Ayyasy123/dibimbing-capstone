@@ -50,9 +50,18 @@ type BookingRes struct {
 }
 
 type BookingReport struct {
-	TotalBooking      int `json:"total_booking"`
-	BookingPending    int `json:"booking_pending"`
-	BookingInProgress int `json:"booking_in_progress"`
-	BookingCompleted  int `json:"booking_completed"`
-	BookingCanceled   int `json:"booking_canceled"`
+	TotalBooking int                   `json:"total_booking"`
+	TotalRevenue float64               `json:"total_revenue"`
+	Status       []BookingStatusDetail `json:"status"`
+}
+
+type BookingStatusDetail struct {
+	BookingPending    int     `json:"booking_pending"`
+	RevenuePending    float64 `json:"revenue_pending"`
+	BookingInProgress int     `json:"booking_in_progress"`
+	RevenueInProgress float64 `json:"revenue_in_progress"`
+	BookingCompleted  int     `json:"booking_completed"`
+	RevenueCompleted  float64 `json:"revenue_completed"`
+	BookingCanceled   int     `json:"booking_canceled"`
+	RevenueCanceled   float64 `json:"revenue_canceled"`
 }

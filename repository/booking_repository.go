@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/Ayyasy123/dibimbing-capstone.git/entity"
 	"gorm.io/gorm"
 )
@@ -14,8 +16,9 @@ type BookingRepository interface {
 	GetBookingsByUserID(userID int) ([]entity.Booking, error)
 	GetBookingsByServiceID(serviceID int) ([]entity.Booking, error)
 	UpdateBookingStatus(bookingID string, status string) error
-	GetTotalBookings() (int64, error)
-	GetBookingsByStatus(status string) (int64, error)
+	GetTotalBookings(startDate, endDate time.Time) (int64, error)
+	GetTotalRevenue(startDate, endDate time.Time) (float64, error)
+	GetBookingsByStatus(status string, startDate, endDate time.Time) (int64, float64, error)
 }
 
 type bookingRepository struct {
@@ -73,14 +76,54 @@ func (r *bookingRepository) CancelBooking(bookingID string) error {
 	return r.db.Model(&entity.Booking{}).Where("id = ?", bookingID).Update("status", "Cancelled").Error
 }
 
-func (r *bookingRepository) GetTotalBookings() (int64, error) {
+func (r *bookingRepository) GetTotalBookings(startDate, endDate time.Time) (int64, error) {
 	var total int64
-	err := r.db.Model(&entity.Booking{}).Count(&total).Error
+	query := r.db.Model(&entity.Booking{})
+
+	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("date BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	err := query.Count(&total).Error
 	return total, err
 }
 
-func (r *bookingRepository) GetBookingsByStatus(status string) (int64, error) {
+func (r *bookingRepository) GetTotalRevenue(startDate, endDate time.Time) (float64, error) {
+	var totalRevenue float64
+	query := r.db.Model(&entity.Booking{}).Joins("JOIN payments ON payments.booking_id = bookings.id").
+		Select("COALESCE(SUM(payments.amount), 0)")
+
+	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("bookings.date BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	err := query.Scan(&totalRevenue).Error
+	return totalRevenue, err
+}
+
+func (r *bookingRepository) GetBookingsByStatus(status string, startDate, endDate time.Time) (int64, float64, error) {
 	var count int64
-	err := r.db.Model(&entity.Booking{}).Where("status = ?", status).Count(&count).Error
-	return count, err
+	var totalRevenue float64
+	query := r.db.Model(&entity.Booking{}).Where("status = ?", status)
+
+	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
+	if !startDate.IsZero() && !endDate.IsZero() {
+		query = query.Where("date BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	// Hitung jumlah booking dan total pendapatan
+	err := query.Count(&count).Error
+	if err != nil {
+		return 0, 0, err
+	}
+
+	err = query.Joins("JOIN payments ON payments.booking_id = bookings.id").
+		Select("COALESCE(SUM(payments.amount), 0)").Scan(&totalRevenue).Error
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return count, totalRevenue, nil
 }

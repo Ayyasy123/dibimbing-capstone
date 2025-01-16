@@ -62,9 +62,10 @@ func (r *reviewRepository) GetTotalReviews(startDate, endDate time.Time, service
 		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
 	}
 
-	// Tambahkan filter service_id jika diberikan
+	// Tambahkan filter booking_id jika diberikan
 	if serviceID > 0 {
-		query = query.Where("service_id = ?", serviceID)
+		query = query.Joins("JOIN bookings ON bookings.id = reviews.booking_id").
+			Where("bookings.service_id = ?", serviceID)
 	}
 
 	err := query.Count(&total).Error
@@ -80,9 +81,10 @@ func (r *reviewRepository) GetAverageRating(startDate, endDate time.Time, servic
 		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
 	}
 
-	// Tambahkan filter service_id jika diberikan
+	// Tambahkan filter booking_id jika diberikan
 	if serviceID > 0 {
-		query = query.Where("service_id = ?", serviceID)
+		query = query.Joins("JOIN bookings ON bookings.id = reviews.booking_id").
+			Where("bookings.service_id = ?", serviceID)
 	}
 
 	err := query.Scan(&averageRating).Error
@@ -98,9 +100,10 @@ func (r *reviewRepository) GetReviewsByRating(rating int, startDate, endDate tim
 		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
 	}
 
-	// Tambahkan filter service_id jika diberikan
+	// Tambahkan filter booking_id jika diberikan
 	if serviceID > 0 {
-		query = query.Where("service_id = ?", serviceID)
+		query = query.Joins("JOIN bookings ON bookings.id = reviews.booking_id").
+			Where("bookings.service_id = ?", serviceID)
 	}
 
 	err := query.Count(&count).Error

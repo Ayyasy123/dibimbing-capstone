@@ -12,7 +12,7 @@ type PaymentRepository interface {
 	FindByID(id int) (entity.Payment, error)
 	Update(payment entity.Payment) (entity.Payment, error)
 	Delete(id int) error
-	FindAll() ([]entity.Payment, error)
+	FindAll(limit, offset int) ([]entity.Payment, error)
 	UpdatePaymentStatus(paymentID string, status string) error
 	GetTotalPayments(startDate, endDate time.Time, serviceID int) (int64, error)
 	GetTotalAmount(startDate, endDate time.Time, serviceID int) (float64, error)
@@ -48,9 +48,9 @@ func (r *paymentRepository) Delete(id int) error {
 	return err
 }
 
-func (r *paymentRepository) FindAll() ([]entity.Payment, error) {
+func (r *paymentRepository) FindAll(limit, offset int) ([]entity.Payment, error) {
 	var payments []entity.Payment
-	err := r.db.Preload("Booking").Find(&payments).Error
+	err := r.db.Limit(limit).Offset(offset).Find(&payments).Error
 	return payments, err
 }
 

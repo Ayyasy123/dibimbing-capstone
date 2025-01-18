@@ -12,7 +12,7 @@ type ReviewRepository interface {
 	FindByID(id int) (entity.Review, error)
 	Update(review entity.Review) (entity.Review, error)
 	Delete(id int) error
-	FindAll() ([]entity.Review, error)
+	FindAll(limit, offset int) ([]entity.Review, error)
 	GetTotalReviews(startDate, endDate time.Time, serviceID int) (int64, error)
 	GetAverageRating(startDate, endDate time.Time, serviceID int) (float64, error)
 	GetReviewsByRating(rating int, startDate, endDate time.Time, serviceID int) (int64, error)
@@ -47,9 +47,9 @@ func (r *reviewRepository) Delete(id int) error {
 	return err
 }
 
-func (r *reviewRepository) FindAll() ([]entity.Review, error) {
+func (r *reviewRepository) FindAll(limit, offset int) ([]entity.Review, error) {
 	var reviews []entity.Review
-	err := r.db.Preload("Booking").Find(&reviews).Error
+	err := r.db.Limit(limit).Offset(offset).Find(&reviews).Error
 	return reviews, err
 }
 

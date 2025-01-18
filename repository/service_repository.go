@@ -10,7 +10,7 @@ import (
 type ServiceRepository interface {
 	Create(service *entity.Service) error
 	FindByID(id int) (*entity.Service, error)
-	FindAll() ([]entity.Service, error)
+	FindAll(limit, offset int) ([]entity.Service, error)
 	Update(service *entity.Service) error
 	Delete(id int) error
 	GetServicesByUserID(userID int) ([]entity.Service, error)
@@ -35,9 +35,9 @@ func (r *serviceRepository) FindByID(id int) (*entity.Service, error) {
 	return &service, err
 }
 
-func (r *serviceRepository) FindAll() ([]entity.Service, error) {
+func (r *serviceRepository) FindAll(limit, offset int) ([]entity.Service, error) {
 	var services []entity.Service
-	err := r.db.Preload("User").Preload("Bookings").Find(&services).Error
+	err := r.db.Limit(limit).Offset(offset).Find(&services).Error
 	return services, err
 }
 

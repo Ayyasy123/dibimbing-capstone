@@ -85,7 +85,10 @@ func (c *BookingController) DeleteBooking(ctx *gin.Context) {
 }
 
 func (c *BookingController) GetAllBookings(ctx *gin.Context) {
-	bookings, err := c.service.GetAllBookings()
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+
+	bookings, err := c.service.GetAllBookings(limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -13,7 +13,7 @@ type UserService interface {
 	Register(req *entity.RegisterUserReq) (*entity.UserRes, error)
 	Login(req *entity.LoginUserReq) (*entity.UserRes, string, error)
 	GetUserByID(id int) (*entity.UserRes, error)
-	GetAllUsers() ([]*entity.UserRes, error)
+	GetAllUsers(limit, offset int) ([]*entity.UserRes, error)
 	UpdateUser(req *entity.UpdateUserReq) (*entity.UserRes, error)
 	RegisterAsTechnician(req *entity.RegisterAsTechnicianReq) (*entity.TechnicianRes, error)
 	UpdateTechnician(req *entity.UpdateTechnicianReq) (*entity.TechnicianRes, error)
@@ -116,8 +116,8 @@ func (s *userService) GetUserByID(id int) (*entity.UserRes, error) {
 	return userRes, nil
 }
 
-func (s *userService) GetAllUsers() ([]*entity.UserRes, error) {
-	users, err := s.userRepository.FindAll()
+func (s *userService) GetAllUsers(limit, offset int) ([]*entity.UserRes, error) {
+	users, err := s.userRepository.FindAll(limit, offset)
 	if err != nil {
 		return nil, err
 	}

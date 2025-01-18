@@ -12,7 +12,7 @@ type ReviewService interface {
 	GetReviewByID(id int) (entity.Review, error)
 	UpdateReview(req entity.UpdateReviewReq) (entity.Review, error)
 	DeleteReview(id int) error
-	GetAllReviews() ([]entity.Review, error)
+	GetAllReviews(limit, offset int) ([]entity.Review, error)
 	GetReviewReport(startDate, endDate time.Time, serviceID int) (entity.ReviewReport, error)
 }
 
@@ -54,8 +54,8 @@ func (s *reviewService) DeleteReview(id int) error {
 	return s.repo.Delete(id)
 }
 
-func (s *reviewService) GetAllReviews() ([]entity.Review, error) {
-	return s.repo.FindAll()
+func (s *reviewService) GetAllReviews(limit, offset int) ([]entity.Review, error) {
+	return s.repo.FindAll(limit, offset)
 }
 
 func (s *reviewService) GetReviewReport(startDate, endDate time.Time, serviceID int) (entity.ReviewReport, error) {

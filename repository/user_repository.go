@@ -8,7 +8,7 @@ import (
 type UserRepository interface {
 	Create(user *entity.User) error
 	FindByID(id int) (*entity.User, error)
-	FindAll() ([]*entity.User, error)
+	FindAll(limit, offset int) ([]*entity.User, error)
 	Update(user *entity.User) error
 	Delete(id int) error
 	FindUserByEmail(email string) (*entity.User, error)
@@ -36,13 +36,10 @@ func (r *userRepository) FindByID(id int) (*entity.User, error) {
 	return &user, nil
 }
 
-func (r *userRepository) FindAll() ([]*entity.User, error) {
+func (r *userRepository) FindAll(limit, offset int) ([]*entity.User, error) {
 	var users []*entity.User
-	err := r.db.Find(&users).Error
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
+	err := r.db.Limit(limit).Offset(offset).Find(&users).Error
+	return users, err
 }
 
 func (r *userRepository) Update(user *entity.User) error {

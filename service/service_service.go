@@ -10,7 +10,7 @@ type ServiceService interface {
 	GetServiceByID(id int) (*entity.Service, error)
 	UpdateService(req entity.UpdateServiceReq) (*entity.Service, error)
 	DeleteService(id int) error
-	GetAllServices() ([]entity.Service, error)
+	GetAllServices(limit, offset int) ([]entity.Service, error)
 	GetServicesByUserID(userID int) ([]entity.ServiceRes, error)
 	SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.ServiceRes, error)
 }
@@ -57,8 +57,8 @@ func (s *serviceService) DeleteService(id int) error {
 	return s.serviceRepo.Delete(id)
 }
 
-func (s *serviceService) GetAllServices() ([]entity.Service, error) {
-	return s.serviceRepo.FindAll()
+func (s *serviceService) GetAllServices(limit, offset int) ([]entity.Service, error) {
+	return s.serviceRepo.FindAll(limit, offset)
 }
 
 func (s *serviceService) GetServicesByUserID(userID int) ([]entity.ServiceRes, error) {

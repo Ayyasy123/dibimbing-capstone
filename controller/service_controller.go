@@ -114,7 +114,10 @@ func (ctrl *serviceController) DeleteService(c *gin.Context) {
 }
 
 func (ctrl *serviceController) GetAllServices(c *gin.Context) {
-	services, err := ctrl.serviceService.GetAllServices()
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	services, err := ctrl.serviceService.GetAllServices(limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

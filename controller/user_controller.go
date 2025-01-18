@@ -70,13 +70,16 @@ func (c *UserController) GetUserByID(ctx *gin.Context) {
 }
 
 func (c *UserController) GetAllUsers(ctx *gin.Context) {
-	usersRes, err := c.userService.GetAllUsers()
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+
+	users, err := c.userService.GetAllUsers(limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, usersRes)
+	ctx.JSON(http.StatusOK, users)
 }
 
 func (c *UserController) UpdateUser(ctx *gin.Context) {

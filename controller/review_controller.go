@@ -85,7 +85,10 @@ func (c *ReviewController) DeleteReview(ctx *gin.Context) {
 }
 
 func (c *ReviewController) GetAllReviews(ctx *gin.Context) {
-	reviews, err := c.service.GetAllReviews()
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+
+	reviews, err := c.service.GetAllReviews(limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

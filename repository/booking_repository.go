@@ -10,7 +10,7 @@ import (
 type BookingRepository interface {
 	Create(booking entity.Booking) (entity.Booking, error)
 	FindByID(id int) (entity.Booking, error)
-	FindAll() ([]entity.Booking, error)
+	FindAll(limit, offset int) ([]entity.Booking, error)
 	Update(booking entity.Booking) (entity.Booking, error)
 	Delete(id int) error
 	GetBookingsByUserID(userID int) ([]entity.Booking, error)
@@ -42,9 +42,9 @@ func (r *bookingRepository) FindByID(id int) (entity.Booking, error) {
 	return booking, err
 }
 
-func (r *bookingRepository) FindAll() ([]entity.Booking, error) {
+func (r *bookingRepository) FindAll(limit, offset int) ([]entity.Booking, error) {
 	var bookings []entity.Booking
-	err := r.db.Preload("User").Preload("Service").Find(&bookings).Error
+	err := r.db.Limit(limit).Offset(offset).Find(&bookings).Error
 	return bookings, err
 }
 

@@ -13,7 +13,7 @@ type BookingService interface {
 	GetBookingByID(id int) (entity.Booking, error)
 	UpdateBooking(req entity.UpdateBookingReq) (entity.Booking, error)
 	DeleteBooking(id int) error
-	GetAllBookings() ([]entity.Booking, error)
+	GetAllBookings(limit, offset int) ([]entity.Booking, error)
 	GetBookingsByUserID(userID int) ([]entity.BookingRes, error)
 	GetBookingsByServiceID(serviceID int) ([]entity.BookingRes, error)
 	UpdateBookingStatus(bookingID string, status string) error
@@ -82,8 +82,8 @@ func (s *bookingService) DeleteBooking(id int) error {
 	return s.repo.Delete(id)
 }
 
-func (s *bookingService) GetAllBookings() ([]entity.Booking, error) {
-	return s.repo.FindAll()
+func (s *bookingService) GetAllBookings(limit, offset int) ([]entity.Booking, error) {
+	return s.repo.FindAll(limit, offset)
 }
 
 func (s *bookingService) GetBookingsByUserID(userID int) ([]entity.BookingRes, error) {

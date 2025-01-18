@@ -85,7 +85,10 @@ func (c *PaymentController) DeletePayment(ctx *gin.Context) {
 }
 
 func (c *PaymentController) GetAllPayments(ctx *gin.Context) {
-	payments, err := c.service.GetAllPayments()
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
+
+	payments, err := c.service.GetAllPayments(limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

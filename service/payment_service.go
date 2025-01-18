@@ -13,7 +13,7 @@ type PaymentService interface {
 	GetPaymentByID(id int) (entity.Payment, error)
 	UpdatePayment(req entity.UpdatePaymentReq) (entity.Payment, error)
 	DeletePayment(id int) error
-	GetAllPayments() ([]entity.Payment, error)
+	GetAllPayments(limit, offset int) ([]entity.Payment, error)
 	UpdatePaymentStatus(paymentID string, status string) error
 	GetPaymentReport(startDate, endDate time.Time, serviceID int) (entity.PaymentReport, error)
 }
@@ -56,8 +56,8 @@ func (s *paymentService) DeletePayment(id int) error {
 	return s.repo.Delete(id)
 }
 
-func (s *paymentService) GetAllPayments() ([]entity.Payment, error) {
-	return s.repo.FindAll()
+func (s *paymentService) GetAllPayments(limit, offset int) ([]entity.Payment, error) {
+	return s.repo.FindAll(limit, offset)
 }
 
 func (s *paymentService) UpdatePaymentStatus(paymentID string, status string) error {

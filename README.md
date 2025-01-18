@@ -31,7 +31,7 @@ This project is a backend API for a service booking platform. It allows users to
 
 ## ERD
 
-![Gambar ERD](doc/Dibimbing capstone.png)
+![Gambar ERD](doc/dibimbing_capstone.png)
 
 ## API Endpoints
 

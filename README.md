@@ -36,7 +36,7 @@ This project is a backend API for a service booking platform. It allows users to
 | ------ | ---------------------------- | -------------------------------------------- | ----------------------- |
 | POST   | `/register`                  | Register a new user                          | No                      |
 | POST   | `/login`                     | Login and get JWT token                      | No                      |
-| POST   | `/register-admin`            | Register a new admin (admin only)            | Yes (Admin)             |
+| POST   | `/register-admin`            | Register a new admin                         | No                      |
 | GET    | `/users/:id`                 | Get user details by ID                       | Yes                     |
 | GET    | `/users`                     | Get all users (with pagination)              | Yes                     |
 | PUT    | `/users`                     | Update user details                          | Yes                     |

@@ -5,14 +5,15 @@ This project is a backend API for a service booking platform. It allows users to
 ## Table of Contents
 
 1. [Features](#features)
-2. [API Endpoints](#api-endpoints)
+2. [ERD](#erd)
+3. [API Endpoints](#api-endpoints)
    - [User Endpoints](#user-endpoints)
    - [Service Endpoints](#service-endpoints)
    - [Booking Endpoints](#booking-endpoints)
    - [Payment Endpoints](#payment-endpoints)
    - [Review Endpoints](#review-endpoints)
-3. [Middleware](#middleware)
-4. [Entities](#entities)
+4. [Middleware](#middleware)
+<!-- 4. [Entities](#entities) -->
 
 ---
 
@@ -27,6 +28,10 @@ This project is a backend API for a service booking platform. It allows users to
 - **Authentication & Authorization**: JWT-based authentication and role-based access control.
 
 ---
+
+## ERD
+
+![Gambar ERD](doc/Dibimbing capstone.png)
 
 ## API Endpoints
 
@@ -125,6 +130,8 @@ This project is a backend API for a service booking platform. It allows users to
 ---
 
 ## Entities
+
+![Gambar ERD](doc/Dibimbing capstone.png)
 
 ### User (`users.go`)
 

@@ -181,3 +181,46 @@ func (c *BookingController) GetBookingReport(ctx *gin.Context) {
 	// Kembalikan response JSON
 	ctx.JSON(http.StatusOK, report)
 }
+
+func (c *BookingController) GetAvailableDates(ctx *gin.Context) {
+	// Ambil service_id dari query parameter
+	serviceID, err := strconv.Atoi(ctx.Query("service_id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid service_id"})
+		return
+	}
+
+	// Ambil tahun dan bulan dari query parameter
+	year, err := strconv.Atoi(ctx.Query("year"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid year"})
+		return
+	}
+
+	month, err := strconv.Atoi(ctx.Query("month"))
+	if err != nil || month < 1 || month > 12 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid month"})
+		return
+	}
+
+	// Panggil service untuk mendapatkan tanggal yang tersedia
+	availableDates, err := c.service.GetAvailableDates(serviceID, year, month)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Format tanggal ke dalam bentuk string (YYYY-MM-DD)
+	var availableDatesStr []string
+	for _, date := range availableDates {
+		availableDatesStr = append(availableDatesStr, date.Format("2006-01-02"))
+	}
+
+	// Kembalikan response JSON
+	ctx.JSON(http.StatusOK, gin.H{
+		"service_id":      serviceID,
+		"year":            year,
+		"month":           month,
+		"available_dates": availableDatesStr,
+	})
+}

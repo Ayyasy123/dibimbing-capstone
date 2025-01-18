@@ -18,6 +18,7 @@ type BookingService interface {
 	GetBookingsByServiceID(serviceID int) ([]entity.BookingRes, error)
 	UpdateBookingStatus(bookingID string, status string) error
 	GetBookingReport(startDate, endDate time.Time) (entity.BookingReport, error)
+	GetAvailableDates(serviceID int, year int, month int) ([]time.Time, error)
 }
 
 type bookingService struct {
@@ -29,11 +30,28 @@ func NewBookingService(repo repository.BookingRepository) BookingService {
 }
 
 func (s *bookingService) CreateBooking(req entity.CreateBookingReq) (entity.Booking, error) {
+	// Dapatkan tanggal hari ini (awal hari, 00:00:00)
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+
+	// Jika tanggal booking adalah hari ini atau sebelumnya, tolak booking
+	if req.Date.Before(today) || req.Date.Equal(today) {
+		return entity.Booking{}, errors.New("booking cannot be accepted for today or past dates")
+	}
+
+	// Cek ketersediaan layanan pada tanggal yang diminta
+	isAvailable, err := s.repo.CheckServiceAvailability(req.ServiceID, req.Date)
+	if err != nil {
+		return entity.Booking{}, err
+	}
+	if !isAvailable {
+		return entity.Booking{}, errors.New("service is already booked on the requested date")
+	}
+
+	// Buat booking baru
 	booking := entity.Booking{
-		UserID:    req.UserID,
-		ServiceID: req.ServiceID,
-		Date:      req.Date,
-		// Time:        req.Time,
+		UserID:      req.UserID,
+		ServiceID:   req.ServiceID,
+		Date:        req.Date,
 		Status:      "Pending", // Default status
 		Description: req.Description,
 	}
@@ -175,4 +193,44 @@ func (s *bookingService) GetBookingReport(startDate, endDate time.Time) (entity.
 	}
 
 	return report, nil
+}
+
+func (s *bookingService) GetAvailableDates(serviceID int, year int, month int) ([]time.Time, error) {
+	// Dapatkan tanggal-tanggal yang sudah dipesan
+	bookedDates, err := s.repo.GetBookedDates(serviceID, year, month)
+	if err != nil {
+		return nil, err
+	}
+
+	// Buat map untuk menyimpan tanggal yang sudah dipesan
+	bookedMap := make(map[string]bool)
+	for _, date := range bookedDates {
+		bookedMap[date.Format("2006-01-02")] = true
+	}
+
+	// Hitung jumlah hari dalam bulan dan tahun yang diminta
+	daysInMonth := time.Date(year, time.Month(month+1), 0, 0, 0, 0, 0, time.UTC).Day()
+
+	// Buat slice untuk menyimpan tanggal yang tersedia
+	var availableDates []time.Time
+
+	// Dapatkan tanggal hari ini (awal hari, 00:00:00)
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+
+	// Loop melalui setiap hari dalam bulan
+	for day := 1; day <= daysInMonth; day++ {
+		date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+
+		// Jika tanggal adalah hari ini atau sebelumnya, abaikan
+		if date.Before(today) || date.Equal(today) {
+			continue
+		}
+
+		// Jika tanggal tidak ada di bookedMap, tambahkan ke availableDates
+		if !bookedMap[date.Format("2006-01-02")] {
+			availableDates = append(availableDates, date)
+		}
+	}
+
+	return availableDates, nil
 }

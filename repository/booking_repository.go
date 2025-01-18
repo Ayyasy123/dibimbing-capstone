@@ -19,6 +19,8 @@ type BookingRepository interface {
 	GetTotalBookings(startDate, endDate time.Time) (int64, error)
 	GetTotalRevenue(startDate, endDate time.Time) (float64, error)
 	GetBookingsByStatus(status string, startDate, endDate time.Time) (int64, float64, error)
+	CheckServiceAvailability(serviceID int, date time.Time) (bool, error)
+	GetBookedDates(serviceID int, year int, month int) ([]time.Time, error)
 }
 
 type bookingRepository struct {
@@ -138,4 +140,30 @@ func (r *bookingRepository) GetBookingsByStatus(status string, startDate, endDat
 	}
 
 	return count, totalRevenue, nil
+}
+
+func (r *bookingRepository) CheckServiceAvailability(serviceID int, date time.Time) (bool, error) {
+	var count int64
+	err := r.db.Model(&entity.Booking{}).
+		Where("service_id = ? AND DATE(date) = ?", serviceID, date.Format("2006-01-02")).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count == 0, nil
+}
+
+func (r *bookingRepository) GetBookedDates(serviceID int, year int, month int) ([]time.Time, error) {
+	var bookedDates []time.Time
+
+	// Query untuk mendapatkan tanggal-tanggal yang sudah dipesan
+	err := r.db.Model(&entity.Booking{}).
+		Where("service_id = ? AND YEAR(date) = ? AND MONTH(date) = ?", serviceID, year, month).
+		Pluck("date", &bookedDates).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bookedDates, nil
 }

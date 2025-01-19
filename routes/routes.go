@@ -73,6 +73,7 @@ func SetupBookingRoutes(db *gorm.DB, router *gin.Engine) {
 		bookingRoutes.GET("/service/:service_id", bookingController.GetBookingsByServiceID)
 		bookingRoutes.PUT("/:id/status", bookingController.UpdateBookingStatus)
 		bookingRoutes.GET("/available-dates", bookingController.GetAvailableDates)
+		bookingRoutes.GET("/technician/confirmed", middleware.RoleAuth("technician"), bookingController.GetConfirmedBookingsForTechnician)
 		bookingRoutes.GET("/reports", bookingController.GetBookingReport)
 	}
 }

@@ -227,3 +227,29 @@ func (c *BookingController) GetAvailableDates(ctx *gin.Context) {
 		"available_dates": availableDatesStr,
 	})
 }
+
+func (c *BookingController) GetConfirmedBookingsForTechnician(ctx *gin.Context) {
+	// Ambil user ID dari JWT token (asumsi sudah ada middleware yang menambahkan user ID ke context)
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+
+	// Konversi userID ke integer
+	technicianID, ok := userID.(int)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	// Panggil service untuk mendapatkan booking dengan status "Confirmed" untuk technician
+	bookings, err := c.service.GetConfirmedBookingsForTechnician(technicianID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Kembalikan response JSON
+	ctx.JSON(http.StatusOK, bookings)
+}

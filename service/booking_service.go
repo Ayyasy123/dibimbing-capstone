@@ -19,6 +19,7 @@ type BookingService interface {
 	UpdateBookingStatus(bookingID string, status string) error
 	GetBookingReport(startDate, endDate time.Time) (entity.BookingReport, error)
 	GetAvailableDates(serviceID int, year int, month int) ([]time.Time, error)
+	GetConfirmedBookingsForTechnician(technicianID int) ([]entity.BookingRes, error)
 }
 
 type bookingService struct {
@@ -233,4 +234,29 @@ func (s *bookingService) GetAvailableDates(serviceID int, year int, month int) (
 	}
 
 	return availableDates, nil
+}
+
+func (s *bookingService) GetConfirmedBookingsForTechnician(technicianID int) ([]entity.BookingRes, error) {
+	// Ambil booking dengan status "Confirmed" yang terkait dengan service_id dari technician
+	bookings, err := s.repo.GetConfirmedBookingsByTechnicianID(technicianID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Map hasil ke struct BookingRes
+	var bookingRes []entity.BookingRes
+	for _, booking := range bookings {
+		bookingRes = append(bookingRes, entity.BookingRes{
+			ID:          booking.ID,
+			UserID:      booking.UserID,
+			ServiceID:   booking.ServiceID,
+			Date:        booking.Date,
+			Status:      booking.Status,
+			Description: booking.Description,
+			CreatedAt:   booking.CreatedAt,
+			UpdatedAt:   booking.UpdatedAt,
+		})
+	}
+
+	return bookingRes, nil
 }

@@ -21,6 +21,7 @@ type BookingRepository interface {
 	GetBookingsByStatus(status string, startDate, endDate time.Time) (int64, float64, error)
 	CheckServiceAvailability(serviceID int, date time.Time) (bool, error)
 	GetBookedDates(serviceID int, year int, month int) ([]time.Time, error)
+	GetConfirmedBookingsByTechnicianID(technicianID int) ([]entity.Booking, error)
 }
 
 type bookingRepository struct {
@@ -166,4 +167,12 @@ func (r *bookingRepository) GetBookedDates(serviceID int, year int, month int) (
 	}
 
 	return bookedDates, nil
+}
+
+func (r *bookingRepository) GetConfirmedBookingsByTechnicianID(technicianID int) ([]entity.Booking, error) {
+	var bookings []entity.Booking
+	err := r.db.Joins("JOIN services ON services.id = bookings.service_id").
+		Where("services.user_id = ? AND bookings.status = ?", technicianID, "Confirmed").
+		Find(&bookings).Error
+	return bookings, err
 }

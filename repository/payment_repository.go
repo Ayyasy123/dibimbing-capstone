@@ -64,7 +64,7 @@ func (r *paymentRepository) GetTotalPayments(startDate, endDate time.Time, servi
 
 	// Tambahkan filter tanggal jika startDate dan endDate tidak kosong
 	if !startDate.IsZero() && !endDate.IsZero() {
-		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+		query = query.Where("payments.created_at BETWEEN ? AND ?", startDate, endDate)
 	}
 
 	// Tambahkan filter service_id jika diberikan

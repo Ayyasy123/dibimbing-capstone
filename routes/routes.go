@@ -32,6 +32,7 @@ func SetupUserRoutes(db *gorm.DB, router *gin.Engine) {
 		// Role-based routes
 		userRoutes.POST("/register-technician", userController.RegisterAsTechnician)
 		userRoutes.PUT("/update-technician", middleware.RoleAuth("technician", "admin"), userController.UpdateTechnician)
+		userRoutes.GET("/reports", userController.GetUserRoleReport)
 
 	}
 }

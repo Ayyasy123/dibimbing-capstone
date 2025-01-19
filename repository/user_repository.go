@@ -13,6 +13,7 @@ type UserRepository interface {
 	Delete(id int) error
 	FindUserByEmail(email string) (*entity.User, error)
 	IsEmailExists(email string) (bool, error)
+	GetUserRoleDistribution(startDate, endDate string) (map[string]int, error)
 }
 
 type userRepository struct {
@@ -66,4 +67,28 @@ func (r *userRepository) IsEmailExists(email string) (bool, error) {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func (r *userRepository) GetUserRoleDistribution(startDate, endDate string) (map[string]int, error) {
+	var roleDistribution []struct {
+		Role  string
+		Count int
+	}
+
+	query := r.db.Model(&entity.User{})
+	if startDate != "" && endDate != "" {
+		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	err := query.Select("role, count(*) as count").Group("role").Scan(&roleDistribution).Error
+	if err != nil {
+		return nil, err
+	}
+
+	distributionMap := make(map[string]int)
+	for _, rd := range roleDistribution {
+		distributionMap[rd.Role] = rd.Count
+	}
+
+	return distributionMap, nil
 }

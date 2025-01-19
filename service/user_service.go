@@ -19,6 +19,7 @@ type UserService interface {
 	UpdateTechnician(req *entity.UpdateTechnicianReq) (*entity.TechnicianRes, error)
 	DeleteUser(id int) error
 	RegisterAsAdmin(req *entity.RegisterUserReq) (*entity.UserRes, error)
+	GetUserRoleReport(startDate, endDate string) (map[string]interface{}, error)
 }
 
 type userService struct {
@@ -318,4 +319,23 @@ func (s *userService) RegisterAsAdmin(req *entity.RegisterUserReq) (*entity.User
 	}
 
 	return userRes, nil
+}
+
+func (s *userService) GetUserRoleReport(startDate, endDate string) (map[string]interface{}, error) {
+	roleDistribution, err := s.userRepository.GetUserRoleDistribution(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	totalUsers := 0
+	for _, count := range roleDistribution {
+		totalUsers += count
+	}
+
+	report := map[string]interface{}{
+		"total_users":       totalUsers,
+		"role_distribution": roleDistribution,
+	}
+
+	return report, nil
 }

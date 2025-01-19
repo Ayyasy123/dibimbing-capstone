@@ -163,3 +163,16 @@ func (c *UserController) RegisterAsAdmin(ctx *gin.Context) {
 	// Kembalikan response
 	ctx.JSON(http.StatusCreated, userRes)
 }
+
+func (c *UserController) GetUserRoleReport(ctx *gin.Context) {
+	startDate := ctx.Query("start_date")
+	endDate := ctx.Query("end_date")
+
+	report, err := c.userService.GetUserRoleReport(startDate, endDate)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, report)
+}

@@ -1,6 +1,6 @@
 # Capstone Project: Service Booking API
 
-This project is a backend API for a service booking platform. It allows users to book services, make payments, leave reviews, and manage their profiles. The API is built using Go (Golang) with the Gin framework and uses a PostgreSQL database with GORM as the ORM.
+This project is a backend API for a service booking platform. It allows users to book services, make payments, leave reviews, and manage their profiles. The API is built using Go (Golang) with the Gin framework and uses a MySQL database with GORM as the ORM.
 
 ## Table of Contents
 

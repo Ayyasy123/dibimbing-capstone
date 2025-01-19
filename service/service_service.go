@@ -13,6 +13,7 @@ type ServiceService interface {
 	GetAllServices(limit, offset int) ([]entity.Service, error)
 	GetServicesByUserID(userID int) ([]entity.ServiceRes, error)
 	SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.ServiceRes, error)
+	GetServiceCostReport(startDate, endDate string) (map[string]interface{}, error)
 }
 
 type serviceService struct {
@@ -103,4 +104,23 @@ func (s *serviceService) SearchServices(searchQuery string, minPrice, maxPrice i
 	}
 
 	return serviceRes, nil
+}
+
+func (s *serviceService) GetServiceCostReport(startDate, endDate string) (map[string]interface{}, error) {
+	costDistribution, err := s.serviceRepo.GetServiceCostDistribution(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	totalServices := 0
+	for _, count := range costDistribution {
+		totalServices += count
+	}
+
+	report := map[string]interface{}{
+		"total_services":    totalServices,
+		"cost_distribution": costDistribution,
+	}
+
+	return report, nil
 }

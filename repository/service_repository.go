@@ -15,6 +15,7 @@ type ServiceRepository interface {
 	Delete(id int) error
 	GetServicesByUserID(userID int) ([]entity.Service, error)
 	SearchServices(searchQuery string, minPrice, maxPrice int) ([]entity.Service, error)
+	GetServiceCostDistribution(startDate, endDate string) (map[string]int, error)
 }
 
 type serviceRepository struct {
@@ -71,4 +72,36 @@ func (r *serviceRepository) SearchServices(searchQuery string, minPrice, maxPric
 
 	err := query.Preload("User").Find(&services).Error
 	return services, err
+}
+
+func (r *serviceRepository) GetServiceCostDistribution(startDate, endDate string) (map[string]int, error) {
+	var costDistribution []struct {
+		CostRange string
+		Count     int
+	}
+
+	query := r.db.Model(&entity.Service{})
+	if startDate != "" && endDate != "" {
+		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	err := query.Select("CASE " +
+		"WHEN cost BETWEEN 50000 AND 100000 THEN '50000-100000' " +
+		"WHEN cost BETWEEN 100001 AND 300000 THEN '100001-300000' " +
+		"WHEN cost BETWEEN 300001 AND 500000 THEN '300001-500000' " +
+		"WHEN cost BETWEEN 500001 AND 700000 THEN '500001-700000' " +
+		"WHEN cost BETWEEN 700001 AND 1000000 THEN '700001-1000000' " +
+		"ELSE '1000001+' END as cost_range, count(*) as count").
+		Group("cost_range").
+		Scan(&costDistribution).Error
+	if err != nil {
+		return nil, err
+	}
+
+	distributionMap := make(map[string]int)
+	for _, cd := range costDistribution {
+		distributionMap[cd.CostRange] = cd.Count
+	}
+
+	return distributionMap, nil
 }

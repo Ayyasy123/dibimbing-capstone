@@ -9,34 +9,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ServiceController interface {
-	CreateService(c *gin.Context)
-	GetServiceByID(c *gin.Context)
-	UpdateService(c *gin.Context)
-	DeleteService(c *gin.Context)
-	GetAllServices(c *gin.Context)
-	GetServicesByUserID(ctx *gin.Context)
-	SearchServices(c *gin.Context)
-}
+// type ServiceController interface {
+// 	CreateService(ctx *gin.Context)
+// 	GetServiceByID(ctx *gin.Context)
+// 	UpdateService(ctx *gin.Context)
+// 	DeleteService(ctx *gin.Context)
+// 	GetAllServices(ctx *gin.Context)
+// 	GetServicesByUserID(ctx *gin.Context)
+// 	SearchServices(ctx *gin.Context)
+// }
 
-type serviceController struct {
+type ServiceController struct {
 	serviceService service.ServiceService
 }
 
-func NewServiceController(serviceService service.ServiceService) ServiceController {
-	return &serviceController{serviceService}
+func NewServiceController(serviceService service.ServiceService) *ServiceController {
+	return &ServiceController{serviceService: serviceService}
 }
 
-func (ctrl *serviceController) CreateService(c *gin.Context) {
+func (c *ServiceController) CreateService(ctx *gin.Context) {
 	var req entity.CreateServiceReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	service, err := ctrl.serviceService.CreateService(req)
+	service, err := c.serviceService.CreateService(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -51,35 +51,35 @@ func (ctrl *serviceController) CreateService(c *gin.Context) {
 		UpdatedAt:   service.UpdatedAt,
 	}
 
-	c.JSON(http.StatusCreated, serviceRes)
+	ctx.JSON(http.StatusCreated, serviceRes)
 }
 
-func (ctrl *serviceController) GetServiceByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+func (c *ServiceController) GetServiceByID(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
 		return
 	}
 
-	service, err := ctrl.serviceService.GetServiceByID(id)
+	service, err := c.serviceService.GetServiceByID(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, service)
+	ctx.JSON(http.StatusOK, service)
 }
 
-func (ctrl *serviceController) UpdateService(c *gin.Context) {
+func (c *ServiceController) UpdateService(ctx *gin.Context) {
 	var req entity.UpdateServiceReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	service, err := ctrl.serviceService.UpdateService(req)
+	service, err := c.serviceService.UpdateService(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -94,39 +94,39 @@ func (ctrl *serviceController) UpdateService(c *gin.Context) {
 		UpdatedAt:   service.UpdatedAt,
 	}
 
-	c.JSON(http.StatusOK, serviceRes)
+	ctx.JSON(http.StatusOK, serviceRes)
 }
 
-func (ctrl *serviceController) DeleteService(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+func (c *ServiceController) DeleteService(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid ID"})
 		return
 	}
 
-	err = ctrl.serviceService.DeleteService(id)
+	err = c.serviceService.DeleteService(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Service deleted successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Service deleted successfully"})
 }
 
-func (ctrl *serviceController) GetAllServices(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+func (c *ServiceController) GetAllServices(ctx *gin.Context) {
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+	offset, _ := strconv.Atoi(ctx.DefaultQuery("offset", "0"))
 
-	services, err := ctrl.serviceService.GetAllServices(limit, offset)
+	services, err := c.serviceService.GetAllServices(limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, services)
+	ctx.JSON(http.StatusOK, services)
 }
 
-func (c *serviceController) GetServicesByUserID(ctx *gin.Context) {
+func (c *ServiceController) GetServicesByUserID(ctx *gin.Context) {
 	userID, err := strconv.Atoi(ctx.Param("user_id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -142,10 +142,10 @@ func (c *serviceController) GetServicesByUserID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, services)
 }
 
-func (ctrl *serviceController) SearchServices(c *gin.Context) {
-	searchQuery := c.Query("search") // Ambil parameter query string "search"
-	minPriceStr := c.Query("min_price")
-	maxPriceStr := c.Query("max_price")
+func (c *ServiceController) SearchServices(ctx *gin.Context) {
+	searchQuery := ctx.Query("search") // Ambil parameter query string "search"
+	minPriceStr := ctx.Query("min_price")
+	maxPriceStr := ctx.Query("max_price")
 
 	var minPrice, maxPrice int
 	var err error
@@ -156,7 +156,7 @@ func (ctrl *serviceController) SearchServices(c *gin.Context) {
 	} else {
 		minPrice, err = strconv.Atoi(minPriceStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid min_price"})
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid min_price"})
 			return
 		}
 	}
@@ -167,21 +167,34 @@ func (ctrl *serviceController) SearchServices(c *gin.Context) {
 	} else {
 		maxPrice, err = strconv.Atoi(maxPriceStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid max_price"})
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid max_price"})
 			return
 		}
 	}
 
 	if minPrice > maxPrice {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "min_price must be less than or equal to max_price"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "min_price must be less than or equal to max_price"})
 		return
 	}
 
-	services, err := ctrl.serviceService.SearchServices(searchQuery, minPrice, maxPrice)
+	services, err := c.serviceService.SearchServices(searchQuery, minPrice, maxPrice)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, services)
+	ctx.JSON(http.StatusOK, services)
+}
+
+func (c *ServiceController) GetServiceCostReport(ctx *gin.Context) {
+	startDate := ctx.Query("start_date")
+	endDate := ctx.Query("end_date")
+
+	report, err := c.serviceService.GetServiceCostReport(startDate, endDate)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, report)
 }

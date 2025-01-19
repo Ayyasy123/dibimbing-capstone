@@ -53,6 +53,7 @@ func SetupServiceRoutes(db *gorm.DB, router *gin.Engine) {
 		serviceRoutes.GET("", serviceController.GetAllServices)
 		serviceRoutes.GET("/user/:user_id", serviceController.GetServicesByUserID)
 		serviceRoutes.GET("/search", serviceController.SearchServices) /// services/search?search=plumbing&min_price=10000&max_price=50000
+		serviceRoutes.GET("/reports", serviceController.GetServiceCostReport)
 	}
 }
 
